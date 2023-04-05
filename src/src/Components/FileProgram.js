@@ -142,7 +142,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
                         </option>
                     </select>
 
-                    <button type="button" onClick={handleSolve}>Genereate</button>
+                    <button type="button" onClick={handleSolve}>Solve</button>
                 </div>}
 
             </form>
