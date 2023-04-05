@@ -1,0 +1,263 @@
+/*Font change for H1 */
+@font-face {
+  font-family: 'Quicksand';
+  src: url('./Fonts/Quicksand-Regular.ttf');
+}
+
+/* base styles */
+* {
+  margin: 0;
+  font-family: "Quicksand";
+  color: #333;
+}
+
+.navbar {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
+  border-bottom: 1px solid #f2f2f2;
+}
+.navbar h1 {
+  color: #f1356d;
+}
+
+.navbar .menus {
+  margin-left: auto;
+}
+.navbar .links {
+  margin-left: auto;
+}
+
+.navbar button {
+  
+  color:#f1356d;
+  border: 0;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.navbar a {
+  margin-left: 16px;
+  text-decoration: none;
+  padding: 6px;
+}
+.navbar a:hover {
+  color: #f1356d;
+}
+
+/* welcome page */
+
+.welcome {
+  display: block;
+  text-align: center;
+  margin: 100px auto;
+}
+
+.welcome h3{
+  display: block;
+  margin-bottom: 30px;
+}
+
+.welcome label{
+  display: block;
+  margin: 10px auto;
+  max-width: 25%;
+}
+
+.home {
+  max-width: 400px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.home .links {
+  background: #f1356d;
+  color: #fff;
+  margin-top: 5%;
+  margin-left: 20%;
+  margin-right: 20%;
+  padding: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: block;
+  text-decoration-line:none;
+  text-align: center;
+}
+
+/* program */
+
+.program {
+  display: block;
+  max-width: 70%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.program form {
+  max-width: 30%;
+  margin:0 auto;
+}
+.program .contentLeft {
+  display: inline-block;
+}
+
+.program label {
+  
+  text-align: left;
+  display: block;
+}
+.program h2 {
+  font-size: 20px;
+  color: #f1356d;
+  margin-bottom: 30px;
+}
+.program input, .program textarea, .program select {
+  width: 100%;
+  padding: 6px 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  display: block;
+}
+.program button {
+  background: #f1356d;
+  color: #fff;
+  border: 0;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.program .inputFile {
+  display: none;
+}
+
+.program .inputFileLabel {
+  display: block;
+  text-align: center;
+  cursor: pointer;
+  margin: 20px auto;
+}
+
+.program span {
+  color:#f1356d;
+}
+
+.program img {
+  margin: 0 auto;
+  width: 300px;
+  height: auto;
+}
+
+.program .pdfViewer {
+  width: 100%;
+  height: 500px;
+  margin-bottom: 25px;
+}
+
+.program UploadedImage {
+  display: flex;
+}
+
+.program .fileLink {
+  background: #f1356d;
+  color: #fff;
+  margin-top: 5%;
+  margin-left: 20%;
+  margin-right: 20%;
+  padding: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: block;
+  text-decoration-line:none;
+  text-align: center;
+}
+
+.program .search {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  
+}
+
+.program .searchinput {
+
+  max-width: 50%;
+}
+.program .searchbutton {
+
+  margin-left: 20px;
+  height: 50%;
+}
+
+.program .info {
+  text-align: center;
+}
+
+.program .images {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+}
+
+.program .update {
+  margin-top: 70px;
+  width: 100%;
+}
+
+.program .delete {
+  background-color: #D0342C;
+  margin-top: 50px;
+  width: 100%;
+}
+
+/* pop up */
+
+.popup, .overlay {
+  height: 100vh;
+  top : 0;
+  left : 0;
+  right: 0;
+  bottom: 0;
+  position: fixed;
+  margin: 0 auto;
+}
+
+.popup-content {
+  text-align: center;
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  line-height: 1.4;
+  background: #f1f1f1;
+  padding: 14px 28px;
+  border-radius: 3px;
+  max-width: 600px;
+  min-width: 300px;
+}
+
+.popup button {
+  padding: 10px 20px;
+  display: block;
+  margin: 0 auto;
+  position: relative;
+  bottom: 2.5%;
+
+  background-color:  #f1f1f1;
+  color:#f1356d;
+  border-radius: 8px;
+  cursor: pointer;
+  border-width: 1px;
+  border-color: rgba(44, 44, 44, 0.5);
+}
+
+.overlay {
+  background-color: rgba(49, 49, 49, 0.7);
+}
+
