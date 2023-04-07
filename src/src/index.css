@@ -95,6 +95,16 @@
   text-align: center;
 }
 
+.program .display {
+  width: 70%;
+  margin:0 auto;
+  padding: 10px;
+  border: #f1356d;
+  border-width: 1px;
+  border-radius: 10px;
+  border-style: solid;
+}
+
 .program form {
   max-width: 30%;
   margin:0 auto;
@@ -143,6 +153,11 @@
 
 .program span {
   color:#f1356d;
+}
+
+.program .note {
+  color:#333;
+  font-size: small;
 }
 
 .program img {

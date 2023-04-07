@@ -51,8 +51,6 @@ const FileProgram = ({setLoading, showPopUp}) => {
         for (var i = 0; i < row; i++) {
 
             const line = matrix[i]
-            
-            console.log(line)
 
             if (line.length !== column) 
                     return {"success": false, 
@@ -79,6 +77,10 @@ const FileProgram = ({setLoading, showPopUp}) => {
                 if (matrix[j][k] !== matrix[k][j])
                     return {"success": false, 
                         "msg": "Adjancency matrix should be symetric!"}
+
+                if (j === k && parseInt(matrix[j][k]) !== 0)
+                    return {"success": false, 
+                        "msg": "Value in diagonal should be zero!"}
             }
         }
 
@@ -104,10 +106,10 @@ const FileProgram = ({setLoading, showPopUp}) => {
     return ( 
         <div className='program'>
             <h2>File App</h2>
+
+            {configFile && adjMatrix && <ConfigMap adjacencyMatrix={adjMatrix} configFile={configFile}/>}
+
             <form>
-
-                {configFile && <ConfigMap file={configFile}/>}
-
                 <label className="inputFileLabel">
                     <span>Insert Configuration File</span>
                     <input
@@ -119,27 +121,31 @@ const FileProgram = ({setLoading, showPopUp}) => {
                     ></input>
                 </label>
                 
-                {configFile && <div>
+                {adjMatrix && <div>
                     <label>Source Node :</label>
-                    <select value={sourceNode} onChange={(e) => setSourceNode(e.target.value)}>
-                        <option>
-                            Node 1 (bakal generate pilihan sesuai input file)
-                        </option>
-
-                        <option>
-                            Node 2
-                        </option>
+                    <select value={sourceNode} onChange={(e) => {e.preventDefault(); setSourceNode(e.target.value)}}>
+                        {
+                            adjMatrix.map((_, index) => {
+                                return(
+                                    <option key={"source" + index}>
+                                        Node {index+1}
+                                    </option>
+                                )
+                            })
+                        }
                     </select>
 
                     <label>Target Node :</label>
-                    <select value={targetNode} onChange={(e) => setTargetNode(e.target.value)}>
-                        <option>
-                            Node 1 (generate kaya atas juga hehe)
-                        </option>
-
-                        <option>
-                            Node 2
-                        </option>
+                    <select value={targetNode} onChange={(e) => {e.preventDefault(); setTargetNode(e.target.value)}}>
+                        {
+                            adjMatrix.map((_, index) => {
+                                return(
+                                    <option key={"target" + index}>
+                                        Node {index+1}
+                                    </option>
+                                )
+                            })
+                        }
                     </select>
 
                     <button type="button" onClick={handleSolve}>Solve</button>
