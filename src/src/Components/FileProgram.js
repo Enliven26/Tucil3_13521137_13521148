@@ -4,40 +4,64 @@ import ConfigMap from "./ConfigMap";
 const FileProgram = ({setLoading, showPopUp}) => {
     
     // program states
-    const [sourceNode, setSourceNode] = useState(null);
-    const [targetNode, setTargetNode] = useState(null);
+    const [sourceNode, setSourceNode] = useState(0);
+    const [targetNode, setTargetNode] = useState(0);
     const [configFile, setConfigFile] = useState(null);
     const [adjMatrix, setMatrix] = useState(null);
+    const [names, setNames] = useState(null);
+    const [solution, setSolution] = useState(null);
 
     // handlers
-    const handleFileInput = async (event) => {
+    const handleConfigFileInput = async (event) => {
 
-        setLoading(true)
         event.preventDefault();
 
         if (event.target.files[0] !== undefined)
         {
-            var res = await readFile(event.target.files[0])
+            setLoading(true);
+
+            var res = await readFile(event.target.files[0], isConfigFileValid)
 
             if (res.success) {
+                setSolution(null);
+                setNames(null);
                 setConfigFile(event.target.files[0]);
-                setMatrix(res.data)
+                setMatrix(res.data);
+                setSourceNode(0);
+                setTargetNode(0);
             }
 
             else {
                 showPopUp({title:"File Configuration Error", message:res.msg})
             }
-        }
 
-        setLoading(false)
+            setLoading(false);
+        }
     }
 
-    const handleSolve = async (e) => {
-        e.preventDefault();
+    const handleNameFileInput = async (event) => {
+        event.preventDefault();
+        if (event.target.files[0] !== undefined)
+        {
+            setLoading(true);
+            var res = await readFile(event.target.files[0], isNameFileValid)
 
-        setLoading(true);
+            if (res.success) {
+                setNames(res.data)
+            }
 
-        setLoading(false);
+            else {
+                showPopUp({title:"File Configuration Error", message:res.msg})
+            }
+            setLoading(false);
+        }
+    }
+
+    const handleSolve = async (event) => {
+        event.preventDefault();
+        setSolution([3, 1, 2, 0])
+
+    
     }
 
     const isConfigFileValid = (lines) => {
@@ -86,8 +110,24 @@ const FileProgram = ({setLoading, showPopUp}) => {
 
         return {"success": true, "msg": "Configuration File is valid", "data": matrix};
     }
+
+    const isNameFileValid = (lines) => {
+        
+        if (!lines || lines.length === 0 || lines[0].length === 0) return {"success": false, "msg": "Name file is empty!"}
+
+
+        const row = lines.length
+        const nodeCount = adjMatrix.length
+
+        if (row !== nodeCount) return {"success": false, "msg": `Name file doesn't contain ${nodeCount} names for all nodes!`}
+        for (var i = 0; i < row; i++) {
+            if (lines[i].length > 20) return {"success": false, "msg": `Name should be 20 characters maximum!`}
+        }
+
+        return {"success": true, "msg": "Name File is valid", "data": lines};
+    }
     
-    const readFile = async (file) => {
+    const readFile = async (file, validationFunction) => {
         
         var lines = await new Promise((resolve) => {
             const reader = new FileReader()
@@ -99,7 +139,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
             reader.readAsText(file)
         })
 
-        return isConfigFileValid(lines)
+        return validationFunction(lines)
 
     }
 
@@ -107,16 +147,27 @@ const FileProgram = ({setLoading, showPopUp}) => {
         <div className='program'>
             <h2>File App</h2>
 
-            {configFile && adjMatrix && <ConfigMap adjacencyMatrix={adjMatrix} configFile={configFile}/>}
+            {configFile && adjMatrix && <ConfigMap adjacencyMatrix={adjMatrix} configFile={configFile} names={names} solution={solution}/>}
 
             <form>
                 <label className="inputFileLabel">
-                    <span>Insert Configuration File</span>
+                    <span>Insert Adjacency Matrix</span>
                     <input
                         className="inputFile"
                         type="file"
                         accept=".txt"
-                        onChange={(e) => handleFileInput(e)}
+                        onChange={(e) => handleConfigFileInput(e)}
+                        onClick={(e) => e.target.value = null}
+                    ></input>
+                </label>
+
+                <label className="inputFileLabel">
+                    <span>Insert Node Name Configuration</span>
+                    <input
+                        className="inputFile"
+                        type="file"
+                        accept=".txt"
+                        onChange={(e) => handleNameFileInput(e)}
                         onClick={(e) => e.target.value = null}
                     ></input>
                 </label>
@@ -127,8 +178,8 @@ const FileProgram = ({setLoading, showPopUp}) => {
                         {
                             adjMatrix.map((_, index) => {
                                 return(
-                                    <option key={"source" + index}>
-                                        Node {index+1}
+                                    <option key={"source" + index} value={index}>
+                                        {names? names[index] : "Node " + (index+1)}
                                     </option>
                                 )
                             })
@@ -140,15 +191,15 @@ const FileProgram = ({setLoading, showPopUp}) => {
                         {
                             adjMatrix.map((_, index) => {
                                 return(
-                                    <option key={"target" + index}>
-                                        Node {index+1}
+                                    <option key={"target" + index} value={index}>
+                                        {names? names[index] : "Node " + (index+1)}
                                     </option>
                                 )
                             })
                         }
                     </select>
 
-                    <button type="button" onClick={handleSolve}>Solve</button>
+                    <button type="button" className="solve-button" onClick={handleSolve}>Solve</button>
                 </div>}
 
             </form>

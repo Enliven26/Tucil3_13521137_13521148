@@ -7,6 +7,7 @@ import NavBar from './Components/NavBar';
 import Program from './Components/Program';
 import FileProgram from './Components/FileProgram';
 import PopUp from './Components/PopUp'
+import GoogleMapProgram from './Components/GoogleMapProgram';
 
 
 function App() {
@@ -51,6 +52,7 @@ function App() {
             <Route exact path='/' element={<Home/>}/>
             <Route exact path='/app' element={<Program/>}/>
             <Route exact path='app/using-file' element={<FileProgram {...props}/>}/>
+            <Route exact path='app/using-gmap' element={<GoogleMapProgram {...props}/>}/>
         </Routes>
 
         {popUpState && 
