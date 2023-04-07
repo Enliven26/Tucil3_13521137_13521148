@@ -242,6 +242,16 @@
   width: 100%;
 }
 
+.program .tools {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  margin: 0 auto;
+  width: 100%;
+  background-color: #ddd;
+  border-radius: 10px;
+
+}
 /* pop up */
 
 .popup, .overlay {
