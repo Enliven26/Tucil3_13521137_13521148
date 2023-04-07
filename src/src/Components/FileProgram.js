@@ -147,7 +147,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
         <div className='program'>
             <h2>File App</h2>
 
-            {configFile && adjMatrix && <ConfigMap adjacencyMatrix={adjMatrix} configFile={configFile} names={names} solution={solution}/>}
+            {configFile && adjMatrix && <ConfigMap adjacencyMatrix={adjMatrix} names={names} solution={solution}/>}
 
             <form>
                 <label className="inputFileLabel">

@@ -3,7 +3,22 @@ import { useState, useMemo, useEffect } from "react";
 import { v4 as uuid } from 'uuid';
 
 
-const ConfigMap = ({adjacencyMatrix, configFile, names, solution}) => {
+const ConfigMap = ({adjacencyMatrix, names, solution}) => {
+
+    const [windowWidth, setWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+        const updateWidth = () => {
+          setWidth(window.innerWidth)
+        }
+
+        window.addEventListener('resize', updateWidth);
+        
+        return(() => {
+            window.removeEventListener('resize', updateWidth);
+        })
+
+      }, [windowWidth])
 
     const nodeCount = adjacencyMatrix.length;
 
@@ -14,7 +29,7 @@ const ConfigMap = ({adjacencyMatrix, configFile, names, solution}) => {
 
     useEffect(() => {
 
-        const font = {
+        const font = {  
             color: "#333",
             face: "Quicksand",
         }
@@ -98,13 +113,13 @@ const ConfigMap = ({adjacencyMatrix, configFile, names, solution}) => {
 
             setGraph(tempGraph)
         }
-    }, [configFile, adjacencyMatrix, nodeCount, names, solution])
+    }, [adjacencyMatrix, nodeCount, names, solution, windowWidth])
 
-    const graphKey = useMemo(uuid, [configFile, graph, adjacencyMatrix, solution])
+    const graphKey = useMemo(uuid, [graph, adjacencyMatrix, solution])
 
     const options = {
         layout: {
-
+            randomSeed: 1,
         },
         edges: {
             color: "#000000",
@@ -122,6 +137,13 @@ const ConfigMap = ({adjacencyMatrix, configFile, names, solution}) => {
     return ( 
         <div className="display">
             <Graph
+                style={{
+                    backgroundColor: '#fafafa',
+                    overflow: 'hidden',
+                    margin: 'auto',
+                    width: '100%',
+                    borderRadius: '10px',
+                }}
                 key={graphKey}
                 graph={graph}
                 options={options}

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import ConfigMap from "./ConfigMap";
+import GMap from "./GMap";
 
 const GoogleMapProgram = ({setLoading, showPopUp}) => {
     
@@ -20,7 +21,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         <div className='program'>
             <h2>Google Map App</h2>
 
-
+            <GMap></GMap>
             <form>
                 {adjMatrix && <div>
                     <label>Source Node :</label>
