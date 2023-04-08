@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { GoogleMap, useJsApiLoader, DrawingManager, Data } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, DrawingManager, DirectionsRenderer, DirectionsService } from '@react-google-maps/api';
 import { v4 as uuid } from 'uuid';
 
 const libraries = ['geometry', 'drawing', 'places']
@@ -7,15 +7,21 @@ const libraries = ['geometry', 'drawing', 'places']
 const GoogleMapProgram = ({setLoading, showPopUp}) => {
     
     // program states
-    const [sourceNode, setSourceNode] = useState(null);
-    const [targetNode, setTargetNode] = useState(null);
+    const [sourceMarker, setSourceMarker] = useState(/** @type google.maps.Marker */ null);
+    const [targetMarker, setTargetMarker] = useState(/** @type google.maps.Marker */ null);
     const [adjMatrix, setMatrix] = useState(null);
-    const [drawingManager, setDrawingManager] = useState(null);
-    const [map, setMap] = useState(null);
-    // const [data, setData] = useState(null);
-    const markers = useRef([]);
-    const selectedMarker = useRef(null);
+    const [drawingManager, setDrawingManager] = useState(/** @type google.maps.drawing.DrawingManager */ (null));
+    const [map, setMap] = useState(/** @type google.maps.Map */ (null));
+    const [disableSolve, setDisableSolve] = useState(true);
+    const [directionResults, setDirectionResults] = useState([]);
 
+    // program refs
+    const solutionMode = useRef(false);
+    const markers = useRef([]);
+    const selectedMarker = useRef(/** @type google.maps.Marker */ (null));
+
+
+    // constant configuration
     const containerStyle = {
         overflow: 'hidden',
         width: '100%',
@@ -27,8 +33,23 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         marginBottom: "20px",
     };
 
+    // const options = {
+    //     streetViewControl: false,
+    //     mapTypeControl: false,
+    //     disableDoubleClickZoom: true,
+    //     minZoom:10,
+    //     maxZoom:18,
+    //     scrollwheel: true,
+    // }
+
     const center = {lat: -6.8915, lng: 107.6107}
     const zoom = 16;
+
+    const getMarkerUrl = (color) => {
+        return `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`
+    }
+
+    // handlers
 
     const handleSolve = async (e) => {
         e.preventDefault();
@@ -47,50 +68,187 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         }
     }
 
-    const clearMark = (e) => {
+    const clearAll = (e) => {
         e.preventDefault();
-        if (markers.current.length)
-        {
-            
-            for(var i = 0; i < markers.current.length; i++)
-            {
-                markers.current[i].setMap(null);
-            }
 
-            markers.current = [];
+        const deletedMarkerIds = [];
+
+        for(var i = 0; i < markers.current.length; i++)
+        {
+            deletedMarkerIds.push(markers.current[i].id)
+            markers.current[i].setMap(null);
         }
+
+        markers.current = [];
+        
+        setDirectionResults((prevState) => prevState.filter(
+            (resultObj) => !deletedMarkerIds.includes(resultObj.firstId) && !deletedMarkerIds.includes(resultObj.secondId)
+        ))
+
+        stopSolutionMode(null);
+    }
+
+    const clearMark = (marker) => {
+
+        setDirectionResults((prevState) => prevState.filter((resultObj) => resultObj.firstId !== marker.id && resultObj.secondId !== marker.id))
+        marker.setMap(null);
+        markers.current = markers.current.filter((ref) => ref.id !== marker.id);
+        selectedMarker.current = null;
     }
 
     const addMarker = (marker) => {
-        marker.setIcon("http://maps.google.com/mapfiles/ms/icons/green-dot.png");
+
+        if (selectedMarker.current)
+        {
+            unselectCurrentMark();
+        }
+        
+        marker.setIcon(getMarkerUrl("green"));
         marker.id = uuid();
     
         marker.addListener("click", (event) => {
 
-            if (selectedMarker.current && selectedMarker.current.id === marker.id)
+            if (solutionMode.current) return;
+            if (selectedMarker.current)
             {
-                marker.setMap(null);
-                markers.current = markers.current.filter((ref) => ref.id !== marker.id);
+                // delete marker
+                if (selectedMarker.current.id === marker.id)
+                {
+                    clearMark(marker);
+                }
+                
+                // create path between 2 markers
+                else
+                {
+                    calculateEdge(selectedMarker.current, marker);
+                    unselectCurrentMark();
+                }
+                
             }
-
-            marker.setIcon("http://maps.google.com/mapfiles/ms/icons/blue-dot.png")
-
-            selectedMarker.current = marker;
-
+            
+            // select marker
+            else
+            {
+                marker.setIcon(getMarkerUrl("blue"));
+                selectedMarker.current = marker;
+            }
         })
 
         markers.current = [...markers.current, marker];
     }
 
-    // const options = {
-    //     streetViewControl: false,
-    //     mapTypeControl: false,
-    //     disableDoubleClickZoom: true,
-    //     minZoom:10,
-    //     maxZoom:18,
-    //     scrollwheel: true,
-    // }
+    const calculateEdge = async (startMarker, endMarker) => {
+        
+        const foundIdx = directionResults.indexOf(
+            (resultObj) => (resultObj.firstId === startMarker.id && resultObj.secondId === endMarker.id) 
+                           || (resultObj.firstId === endMarker.id && resultObj.secondId === startMarker.id)
+        )
 
+        console.log(startMarker.id);
+        console.log(endMarker.id);
+        
+        if (directionResults.length)
+        {
+            console.log(directionResults[0].firstId);
+            console.log(directionResults[0].secondId);
+        }
+        
+        
+        if (foundIdx !== -1)
+        {
+            setDirectionResults((prevState) => prevState.splice(foundIdx, 1));
+            return;
+        }
+
+        // eslint-disable-next-line no-undef
+        const directionsService = new google.maps.DirectionsService();
+
+        await directionsService.route({
+            origin: startMarker.getPosition(),
+            destination: endMarker.getPosition(),
+            // eslint-disable-next-line no-undef
+            travelMode: google.maps.TravelMode.DRIVING
+        }, (/** @type google.maps.DirectionsResult */ result, /** @type google.maps.DirectionsStatus */ status) => {
+            
+            if (status === "OK") {
+                setDirectionResults((prevState) => [...prevState, {firstId: startMarker.id, secondId: endMarker.id, result: result}])
+            }
+
+            else
+            {
+                showPopUp(status, "Error while calculating edge between 2 selected markers!");
+            }
+        })
+    }
+
+    const unselectCurrentMark = () => {
+        selectedMarker.current.setIcon(getMarkerUrl("green"));
+        selectedMarker.current = null;
+    }
+
+    const handleMapClick = (event) => {
+        if (selectedMarker.current)
+        {
+            unselectCurrentMark();
+        }
+
+    }
+
+    const toggleMode = (event) => {
+        event.preventDefault();
+
+        if (solutionMode.current)
+        {
+            stopSolutionMode(null);
+        }
+
+        else
+        {
+            startSolutionMode(null);
+        }
+
+    }
+
+    const stopSolutionMode = (event) => {
+        if (event)
+        {
+            event.preventDefault();
+        }
+
+        if (drawingManager)
+        {
+            drawingManager.setOptions({
+                drawingControlOptions: {
+                    drawingModes: ['marker']
+                }
+            })
+        }
+
+        solutionMode.current = false;
+    }
+
+    const startSolutionMode = (event) => {
+
+        if (event)
+        {
+            event.preventDefault();
+        }
+
+        if (drawingManager)
+        {
+            drawingManager.setOptions({
+                drawingControlOptions: {
+                    drawingModes: [null],
+                }
+            })
+
+            drawingManager.setDrawingMode(null);
+        }
+
+        solutionMode.current = true;
+    }
+
+    // load google map
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
         googleMapsApiKey: process.env.REACT_APP_GMAP_API,
@@ -122,95 +280,38 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                                 clickableIcons: true,
                             }}
                             onLoad={(mapRef) => setMap(mapRef)}
+                            onClick={handleMapClick}
                         >
-                            {/* <Data
-                                onLoad={(dataRef) => setData(dataRef)}
-                                options={{
-                                    controlPosition: window.google ? window.google.maps.ControlPosition.TOP_LEFT : undefined,
-                                    controls: ["Point"],
-                                    drawingMode: "Point", //  "LineString" or "Polygon".
-                                    featureFactory: geometry => {
-                                    console.log("geometry: ", geometry);
-                                    },
-                                    // Type:  boolean
-                                    // If true, the marker receives mouse and touch events. Default value is true.
-                                    clickable: true,
-
-                                    // Type:  string
-                                    // Mouse cursor to show on hover. Only applies to point geometries.
-                                    // cursor: 'cursor',
-
-                                    // Type:  boolean
-                                    // If true, the object can be dragged across the map and the underlying feature will have its geometry updated. Default value is false.
-                                    draggable: true,
-
-                                    // Type:  boolean
-                                    // If true, the object can be edited by dragging control points and the underlying feature will have its geometry updated. Only applies to LineString and Polygon geometries. Default value is false.
-                                    editable: false,
-
-                                    // Type:  string
-                                    // The fill color. All CSS3 colors are supported except for extended named colors. Only applies to polygon geometries.
-                                    fillColor: "#FF0055",
-
-                                    // Type:  number
-                                    // The fill opacity between 0.0 and 1.0. Only applies to polygon geometries.
-                                    fillOpacity: 1,
-
-                                    // Type:  string|Icon|Symbol
-                                    // Icon for the foreground. If a string is provided, it is treated as though it were an Icon with the string as url. Only applies to point geometries.
-                                    // icon: 'icon',
-
-                                    // Type:  MarkerShape
-                                    // Defines the image map used for hit detection. Only applies to point geometries.
-                                    shape: {
-                                        coords: [60,0, 90,15, 120,60, 90,120, 60, 180, 30,120, 0,60, 30,15, 60,0],
-                                        type: 'poly'
-                                    
-                                    },
-
-                                    // Type:  string
-                                    // The stroke color. All CSS3 colors are supported except for extended named colors. Only applies to line and polygon geometries.
-                                    strokeColor: "#00FF55",
-
-                                    // Type:  number
-                                    // The stroke opacity between 0.0 and 1.0. Only applies to line and polygon geometries.
-                                    strokeOpacity: 1,
-
-                                    // Type:  number
-                                    // The stroke width in pixels. Only applies to line and polygon geometries.
-                                    strokeWeight: 2,
-
-                                    // Type:  string
-                                    // Rollover text. Only applies to point geometries.
-                                    title: "Title",
-
-                                    // Type:  boolean
-                                    // Whether the feature is visible. Defaults to true.
-                                    visible: true,
-
-                                    // Type:  number
-                                    // All features are displayed on the map in order of their zIndex, with higher values displaying in front of features with lower values. Markers are always displayed in front of line-strings and polygons.
-                                    zIndex: 0
-                                }}
-                            /> */}
                             <DrawingManager
-                                onLoad={(manager) => setDrawingManager(manager)}
+                                onLoad={(manager) => {setDrawingManager(manager)}}
                                 onMarkerComplete={addMarker}
                                 options={{
                                     drawingControlOptions: {
-                                        drawingModes: ['marker']
+                                        drawingModes: solutionMode.current? [null] : ['marker']
                                     }
                                 }}
 
                             />
 
-                            { /* Child components, such as markers, info windows, etc. */ }
-                            <>
-                            </>
+                            {
+                                directionResults.map((resultObj) => 
+                                    <DirectionsRenderer 
+                                        key={resultObj.firstId + resultObj.secondId}
+                                        directions={resultObj.result}
+                                        options={{
+                                            suppressMarkers: true,
+                                            preserveViewport:true,
+                                        }}
+                                    />
+                                )
+                            }
+
                         </GoogleMap>
 
                         <div className='tools'>
                             <button
+                                className="fix-width-button"
+                                title="Set current map center to initial default location"
                                 onClick={resetCenter}
                                 type='button'
                             >
@@ -218,49 +319,37 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                             </button>
 
                             <button
-                                onClick={clearMark}
+                                className="fix-width-button"
+                                title="Clear marks on current map and start editing mode"
+                                onClick={clearAll}
                                 type='button'
                             >
                             Clear Marks
                             </button>
+                         
+                            <button
+                                className="fix-width-button"
+                                title="Switch between editing mode and solution mode (solution mode allows user to choose 2 marks in order to find the shortest path)"
+                                onClick={toggleMode}
+                                type='button'
+                            >
+                            Toggle Mode
+                            </button>
+
+                            <button
+                                className="fix-width-button"
+                                title="Find shortest path between 2 selected marks in solution mode"
+                                onClick={toggleMode}
+                                type='button'
+                                disabled={disableSolve}
+                            >
+                            Solve
+                            </button>
+                            
                         </div>
                     </>
                 }
             </div>
-
-            <form>
-                {adjMatrix && <div>
-                    <label>Source Node :</label>
-                    <select value={sourceNode} onChange={(e) => {e.preventDefault(); setSourceNode(e.target.value)}}>
-                        {
-                            adjMatrix.map((_, index) => {
-                                return(
-                                    <option key={"source" + index}>
-                                        Node {index+1}
-                                    </option>
-                                )
-                            })
-                        }
-                    </select>
-
-                    <label>Target Node :</label>
-                    <select value={targetNode} onChange={(e) => {e.preventDefault(); setTargetNode(e.target.value)}}>
-                        {
-                            adjMatrix.map((_, index) => {
-                                return(
-                                    <option key={"target" + index}>
-                                        Node {index+1}
-                                    </option>
-                                )
-                            })
-                        }
-                    </select>
-
-                    <button type="button" onClick={handleSolve}>Solve</button>
-                </div>}
-
-            </form>
-
         </div>
      );
 }

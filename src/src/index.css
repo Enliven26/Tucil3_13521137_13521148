@@ -245,12 +245,23 @@
 .program .tools {
   display: flex;
   flex-direction: row;
-  justify-content: space-evenly;
+  justify-content: space-between;
   margin: 0 auto;
   width: 100%;
-  background-color: #ddd;
-  border-radius: 10px;
+  background-color: #ef4b7c;
+  border-radius: 20px;
 
+}
+
+.program .fix-width-button {
+  width: 100px;
+  border-radius: 20px;
+  
+}
+
+.program .fix-width-button:disabled {
+  
+  color: dimgray;
 }
 /* pop up */
 
