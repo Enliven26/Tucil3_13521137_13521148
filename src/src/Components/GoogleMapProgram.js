@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { GoogleMap, useJsApiLoader, DrawingManager, DirectionsRenderer } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, DrawingManager, DirectionsRenderer, InfoWindow } from '@react-google-maps/api';
 import { v4 as uuid } from 'uuid';
 
 const libraries = ['geometry', 'drawing', 'places']
@@ -42,6 +42,8 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     const [directionResults, setDirectionResults] = useState([]);
     const [algorithm, setAlgorithm] = useState(0);
     const [solutionDirectionResults, setSolutionDirectionResult] = useState([]);
+    const [solutionInfo, setSolutionInfo] = useState(null);
+    const [infoWindow, setInfoWindow] = useState(/** @type google.maps.InfoWindow */(null));
 
     // program refs
     const solutionMode = useRef(false);
@@ -51,6 +53,19 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     const solutionMarkers = useRef([]);
 
     // handlers
+    // returns straight line distance in meter
+    const getStraightLineDistance = (firstMarker, secondMarker) => {
+        var R = 6371.0710; // Radius of the Earth in km
+        var rlat1 = firstMarker.position.lat() * (Math.PI/180); // Convert degrees to radians
+        var rlat2 = secondMarker.position.lat() * (Math.PI/180); // Convert degrees to radians
+        var difflat = rlat2-rlat1; // Radian difference (latitudes)
+        var difflon = (secondMarker.position.lng()-firstMarker.position.lng()) * (Math.PI/180); // Radian difference (longitudes)
+  
+        var d = 2 * R * Math.asin(Math.sqrt(Math.sin(difflat/2)*Math.sin(difflat/2)+Math.cos(rlat1)*Math.cos(rlat2)*Math.sin(difflon/2)*Math.sin(difflon/2)));
+        return d * 1000;
+
+      }
+    
     const handleSolve = (e) => {
         e.preventDefault();
 
@@ -63,9 +78,10 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         setLoading(true);
 
         const nodeCount = markers.current.length;
-        const startMarkerIdx = markers.current.findIndex(marker => marker.id === solutionMarkers[0].id);
-        const endMarkerIdx = markers.current.findIndex(marker => marker.id === solutionMarkers[1].id);
+        const startMarkerIdx = markers.current.findIndex(marker => marker.id === solutionMarkers.current[0].id);
+        const endMarkerIdx = markers.current.findIndex(marker => marker.id === solutionMarkers.current[1].id);
         const adjMatrix = [];
+        const heuristicValues = [];
 
         markers.current.forEach(firstMarker => {
 
@@ -84,7 +100,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
 
                 else if (foundIdx !== -1)
                 {
-                    adjRow.push(directionResultsRef.current[foundIdx].result.routes[0].legs[0].distance.text)
+                    adjRow.push(directionResultsRef.current[foundIdx].result.routes[0].legs[0].distance.value.toString())
                 }
 
                 else
@@ -97,12 +113,49 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         });
 
         // cari shortest path disini
+
+        const solution = [0, 1, 2];
+
+        const temp = [];
+
+        solution.forEach((val, idx) => {
+
+            if (idx < solution.length-1)
+            {
+                const firstMarker = markers.current[val];
+                const secondMarker = markers.current[solution[idx+1]];
+
+                temp.push(directionResultsRef.current.filter(
+                    (resultObj) => resultObj.firstId === firstMarker.id && resultObj.secondId === secondMarker.id
+                )[0])
+            }
+        });
+
+        markers.current.forEach((marker) => {
+            heuristicValues.push(getStraightLineDistance(marker, solutionMarkers.current[1]))
+        })
+
+        console.log(heuristicValues);
+        console.log(adjMatrix);
         
+        setSolutionInfo({
+            position: solutionMarkers.current[1].getPosition(),
+
+        })
+
+        setSolutionDirectionResult(temp);
+
+        if (infoWindow)
+        {
+            infoWindow.open({
+                anchor: solutionMarkers.current[1]
+            });
+        }
         setLoading(false);
     }
 
     const resetCenter = (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         
         if (map) {
             map.panTo(center);
@@ -142,13 +195,13 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         selectedMarker.current = null;
     }
 
-    const addMarker = (marker) => {
+    const addMarker = (/** @type google.maps.Marker */ marker) => {
 
         if (selectedMarker.current)
         {
             unselectCurrentMark();
         }
-        
+        marker.setZIndex(1);
         marker.setIcon(getMarkerUrl("green"));
         marker.id = uuid();
     
@@ -227,8 +280,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         setLoading(true);
 
         const foundIdx = directionResultsRef.current.findIndex(
-            (resultObj) => (resultObj.firstId === startMarker.id && resultObj.secondId === endMarker.id) 
-                           || (resultObj.firstId === endMarker.id && resultObj.secondId === startMarker.id)
+            (resultObj) => (resultObj.firstId === startMarker.id && resultObj.secondId === endMarker.id)
         )
         
         if (foundIdx !== -1)
@@ -297,6 +349,8 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
             startSolutionMode(null);
         }
 
+        resetCenter(null);
+
     }
 
     const stopSolutionMode = (event) => {
@@ -312,6 +366,11 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                     drawingModes: ['marker']
                 }
             })
+        }
+
+        if (infoWindow)
+        {
+            infoWindow.close();
         }
 
         unselectCurrentMark();
@@ -384,6 +443,22 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                             onClick={handleMapClick}
 
                         >
+                           
+                            <InfoWindow
+                                onLoad={(window) => {setInfoWindow(window)}}
+                                anchor={solutionMarkers.current.length === 2? solutionMarkers.current[1] : center}
+                            >
+                                <>
+                                {solutionInfo &&
+                                    <div className="info-window">
+                                        <h3>Result</h3>
+                                        <span className="note">Shortest Distance: {solutionInfo.distance}</span>   
+                                    </div>
+                                }
+                                </>
+                                
+                            </InfoWindow>
+
                             <DrawingManager
                                 onLoad={(manager) => {setDrawingManager(manager)}}
                                 onMarkerComplete={addMarker}
@@ -392,7 +467,6 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                                         drawingModes: solutionMode.current? [null] : ['marker']
                                     }
                                 }}
-
                             />
 
                             {!solutionDirectionResults.length &&
@@ -403,14 +477,15 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                                         options={{
                                             suppressMarkers: true,
                                         }}
+                                        
                                     />
                                 )
                             }
 
-                            {solutionDirectionResults.length &&
+                            {solutionDirectionResults.length > 0 && 
                                 solutionDirectionResults.map((resultObj) => 
                                 <DirectionsRenderer 
-                                    key={resultObj.firstId + resultObj.secondId}
+                                    key={"solution" +  resultObj.firstId + resultObj.secondId}
                                     directions={resultObj.result}
                                     options={{
                                         suppressMarkers: true,
@@ -418,7 +493,6 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                                 />
                             )
                             }
-
                         </GoogleMap>
 
                         <div className='tools'>
