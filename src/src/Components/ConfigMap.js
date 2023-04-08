@@ -84,16 +84,17 @@ const ConfigMap = ({adjacencyMatrix, names, solution}) => {
                     }
 
                     var secondSolutionIndex = -1;
+                    var isSolutionPartFull
                     
                     if (solution)
                     {
                         secondSolutionIndex = solution.indexOf(j);
 
-                        isSolutionPart = isSolutionPart || (secondSolutionIndex !== -1 && secondSolutionIndex < solution.length);
+                        isSolutionPartFull = isSolutionPart && (secondSolutionIndex !== -1 && secondSolutionIndex < solution.length);
                     }
 
 
-                    if (isSolutionPart)
+                    if (isSolutionPartFull)
                     {
                         if (solution[firstSolutionIndex+1] === j)
                         {
