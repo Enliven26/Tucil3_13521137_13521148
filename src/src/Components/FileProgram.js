@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import ConfigMap from "./ConfigMap";
+import { UniformCostSearch } from "./PathFinding";
 
 const FileProgram = ({setLoading, showPopUp}) => {
     
@@ -59,9 +60,8 @@ const FileProgram = ({setLoading, showPopUp}) => {
 
     const handleSolve = async (event) => {
         event.preventDefault();
-        setSolution([3, 1, 2, 0])
-
-    
+        setSolution(UniformCostSearch(adjMatrix, sourceNode, targetNode));
+        
     }
 
     const isConfigFileValid = (lines) => {
