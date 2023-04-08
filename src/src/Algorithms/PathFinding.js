@@ -1,4 +1,4 @@
-import {PriorityQueue} from './PriorityQueue'
+import {PriorityQueue} from '../Components/PriorityQueue'
 
 const UniformCostSearch = (adjMatrix, source, dest) => {
     source = parseInt(source);
@@ -31,7 +31,7 @@ const UniformCostSearch = (adjMatrix, source, dest) => {
     if (prev[dest] == -1) return (null);
 
     // Backtrack
-    var path = new Array();
+    var path = [];
     var pos = dest;
     while(pos != -1) {
         path.push(pos);

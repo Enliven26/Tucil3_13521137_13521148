@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import ConfigMap from "./ConfigMap";
-import { UniformCostSearch } from "./PathFinding";
+import { UniformCostSearch } from "../Algorithms/PathFinding";
 
 const FileProgram = ({setLoading, showPopUp}) => {
     

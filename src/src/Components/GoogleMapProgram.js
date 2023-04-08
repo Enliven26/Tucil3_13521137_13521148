@@ -1,26 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { GoogleMap, useJsApiLoader, DrawingManager, DirectionsRenderer, DirectionsService } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, DrawingManager, DirectionsRenderer } from '@react-google-maps/api';
 import { v4 as uuid } from 'uuid';
 
 const libraries = ['geometry', 'drawing', 'places']
 
 const GoogleMapProgram = ({setLoading, showPopUp}) => {
     
-    // program states
-    const [sourceMarker, setSourceMarker] = useState(/** @type google.maps.Marker */ null);
-    const [targetMarker, setTargetMarker] = useState(/** @type google.maps.Marker */ null);
-    const [adjMatrix, setMatrix] = useState(null);
-    const [drawingManager, setDrawingManager] = useState(/** @type google.maps.drawing.DrawingManager */ (null));
-    const [map, setMap] = useState(/** @type google.maps.Map */ (null));
-    const [disableSolve, setDisableSolve] = useState(true);
-    const [directionResults, setDirectionResults] = useState([]);
-
-    // program refs
-    const solutionMode = useRef(false);
-    const markers = useRef([]);
-    const selectedMarker = useRef(/** @type google.maps.Marker */ (null));
-
-
     // constant configuration
     const containerStyle = {
         overflow: 'hidden',
@@ -48,6 +33,21 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     const getMarkerUrl = (color) => {
         return `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`
     }
+
+    // program states
+    const [sourceMarker, setSourceMarker] = useState(/** @type google.maps.Marker */ null);
+    const [targetMarker, setTargetMarker] = useState(/** @type google.maps.Marker */ null);
+    const [adjMatrix, setMatrix] = useState(null);
+    const [drawingManager, setDrawingManager] = useState(/** @type google.maps.drawing.DrawingManager */ (null));
+    const [map, setMap] = useState(/** @type google.maps.Map */ (null));
+    const [disableSolve, setDisableSolve] = useState(true);
+    const [directionResults, setDirectionResults] = useState([]);
+
+    // program refs
+    const solutionMode = useRef(false);
+    const markers = useRef([]);
+    const selectedMarker = useRef(/** @type google.maps.Marker */ (null));
+    const directionResultsRef = useRef([]);
 
     // handlers
 
@@ -81,16 +81,20 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
 
         markers.current = [];
         
-        setDirectionResults((prevState) => prevState.filter(
+        directionResultsRef.current = directionResultsRef.current.filter(
             (resultObj) => !deletedMarkerIds.includes(resultObj.firstId) && !deletedMarkerIds.includes(resultObj.secondId)
-        ))
+        );
+        
+        setDirectionResults(directionResultsRef.current);
 
         stopSolutionMode(null);
     }
 
     const clearMark = (marker) => {
 
-        setDirectionResults((prevState) => prevState.filter((resultObj) => resultObj.firstId !== marker.id && resultObj.secondId !== marker.id))
+        directionResultsRef.current = directionResultsRef.current.filter((resultObj) => resultObj.firstId !== marker.id && resultObj.secondId !== marker.id);
+
+        setDirectionResults(directionResultsRef.current);
         marker.setMap(null);
         markers.current = markers.current.filter((ref) => ref.id !== marker.id);
         selectedMarker.current = null;
@@ -138,47 +142,44 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     }
 
     const calculateEdge = async (startMarker, endMarker) => {
-        
-        const foundIdx = directionResults.indexOf(
+
+        setLoading(true);
+
+        const foundIdx = directionResultsRef.current.findIndex(
             (resultObj) => (resultObj.firstId === startMarker.id && resultObj.secondId === endMarker.id) 
                            || (resultObj.firstId === endMarker.id && resultObj.secondId === startMarker.id)
         )
-
-        console.log(startMarker.id);
-        console.log(endMarker.id);
-        
-        if (directionResults.length)
-        {
-            console.log(directionResults[0].firstId);
-            console.log(directionResults[0].secondId);
-        }
-        
         
         if (foundIdx !== -1)
         {
-            setDirectionResults((prevState) => prevState.splice(foundIdx, 1));
-            return;
+            directionResultsRef.current = directionResultsRef.current.filter((_, index) => index !== foundIdx)
+            setDirectionResults(directionResultsRef.current);
         }
 
-        // eslint-disable-next-line no-undef
-        const directionsService = new google.maps.DirectionsService();
-
-        await directionsService.route({
-            origin: startMarker.getPosition(),
-            destination: endMarker.getPosition(),
+        else 
+        {
             // eslint-disable-next-line no-undef
-            travelMode: google.maps.TravelMode.DRIVING
-        }, (/** @type google.maps.DirectionsResult */ result, /** @type google.maps.DirectionsStatus */ status) => {
-            
-            if (status === "OK") {
-                setDirectionResults((prevState) => [...prevState, {firstId: startMarker.id, secondId: endMarker.id, result: result}])
-            }
+            const directionsService = new google.maps.DirectionsService();
 
-            else
-            {
-                showPopUp(status, "Error while calculating edge between 2 selected markers!");
-            }
-        })
+            await directionsService.route({
+                origin: startMarker.getPosition(),
+                destination: endMarker.getPosition(),
+                // eslint-disable-next-line no-undef
+                travelMode: google.maps.TravelMode.DRIVING
+            }, (/** @type google.maps.DirectionsResult */ result, /** @type google.maps.DirectionsStatus */ status) => {
+                
+                if (status === "OK") {
+                    directionResultsRef.current = [...directionResultsRef.current, {firstId: startMarker.id, secondId: endMarker.id, result: result}];
+                    setDirectionResults(directionResultsRef.current);
+                }
+
+                else
+                {
+                    showPopUp(status, "Error while calculating edge between 2 selected markers!");
+                }
+            })
+        }
+        setLoading(false);
     }
 
     const unselectCurrentMark = () => {
@@ -281,6 +282,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                             }}
                             onLoad={(mapRef) => setMap(mapRef)}
                             onClick={handleMapClick}
+
                         >
                             <DrawingManager
                                 onLoad={(manager) => {setDrawingManager(manager)}}
@@ -300,7 +302,6 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                                         directions={resultObj.result}
                                         options={{
                                             suppressMarkers: true,
-                                            preserveViewport:true,
                                         }}
                                     />
                                 )
