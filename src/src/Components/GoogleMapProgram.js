@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 const libraries = ['geometry', 'drawing', 'places']
 
 const GoogleMapProgram = ({setLoading, showPopUp}) => {
-    
+
     // constant configuration
     const containerStyle = {
         overflow: 'hidden',
@@ -35,27 +35,69 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     }
 
     // program states
-    const [sourceMarker, setSourceMarker] = useState(/** @type google.maps.Marker */ null);
-    const [targetMarker, setTargetMarker] = useState(/** @type google.maps.Marker */ null);
     const [adjMatrix, setMatrix] = useState(null);
     const [drawingManager, setDrawingManager] = useState(/** @type google.maps.drawing.DrawingManager */ (null));
     const [map, setMap] = useState(/** @type google.maps.Map */ (null));
     const [disableSolve, setDisableSolve] = useState(true);
     const [directionResults, setDirectionResults] = useState([]);
+    const [algorithm, setAlgorithm] = useState(0);
+    const [solutionDirectionResults, setSolutionDirectionResult] = useState([]);
 
     // program refs
     const solutionMode = useRef(false);
     const markers = useRef([]);
     const selectedMarker = useRef(/** @type google.maps.Marker */ (null));
     const directionResultsRef = useRef([]);
+    const solutionMarkers = useRef([]);
 
     // handlers
-
-    const handleSolve = async (e) => {
+    const handleSolve = (e) => {
         e.preventDefault();
+
+        if (solutionMarkers.current.length < 2)
+        {
+            showPopUp({title:"Invalid Data Error", message:"Select two markers to search for solution!"})
+            return;
+        }
 
         setLoading(true);
 
+        const nodeCount = markers.current.length;
+        const startMarkerIdx = markers.current.findIndex(marker => marker.id === solutionMarkers[0].id);
+        const endMarkerIdx = markers.current.findIndex(marker => marker.id === solutionMarkers[1].id);
+        const adjMatrix = [];
+
+        markers.current.forEach(firstMarker => {
+
+            const adjRow = [];
+
+            markers.current.forEach(secondMarker => {
+
+                const foundIdx = directionResultsRef.current.findIndex(
+                    (resultObj) => resultObj.firstId === firstMarker.id && resultObj.secondId === secondMarker.id
+                );
+
+                if (firstMarker.id === secondMarker.id)
+                {
+                    adjRow.push("0");
+                }
+
+                else if (foundIdx !== -1)
+                {
+                    adjRow.push(directionResultsRef.current[foundIdx].result.routes[0].legs[0].distance.text)
+                }
+
+                else
+                {
+                    adjRow.push("X");
+                }
+            });
+
+            adjMatrix.push(adjRow);
+        });
+
+        // cari shortest path disini
+        
         setLoading(false);
     }
 
@@ -112,30 +154,69 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     
         marker.addListener("click", (event) => {
 
-            if (solutionMode.current) return;
-            if (selectedMarker.current)
+            if (solutionMode.current)
             {
-                // delete marker
-                if (selectedMarker.current.id === marker.id)
+                if (solutionMarkers.current.length)
                 {
-                    clearMark(marker);
+                    const foundIdx = solutionMarkers.current.findIndex((elmt) => elmt.id === marker.id)
+
+                    // unselect marker
+                    if (foundIdx !== -1)
+                    {
+                        solutionMarkers.current.splice(foundIdx, 1);
+                        unselectMark(marker);
+                    }
+                    
+                    // select target marker
+                    else
+                    {
+                        solutionMarkers.current.push(marker);
+
+                        if (solutionMarkers.current.length > 2)
+                        {
+                            unselectMark(solutionMarkers.current[0]);
+                            solutionMarkers.current.splice(0, 1);
+                        }
+
+                        marker.setIcon(getMarkerUrl("blue"));
+                    }
+                    
                 }
                 
-                // create path between 2 markers
+                // select source marker
                 else
                 {
-                    calculateEdge(selectedMarker.current, marker);
-                    unselectCurrentMark();
+                    marker.setIcon(getMarkerUrl("blue"));
+                    solutionMarkers.current.push(marker);
                 }
-                
             }
-            
-            // select marker
+
             else
             {
-                marker.setIcon(getMarkerUrl("blue"));
-                selectedMarker.current = marker;
-            }
+                if (selectedMarker.current)
+                {
+                    // delete marker
+                    if (selectedMarker.current.id === marker.id)
+                    {
+                        clearMark(marker);
+                    }
+                    
+                    // create path between 2 markers
+                    else
+                    {
+                        calculateEdge(selectedMarker.current, marker);
+                        unselectCurrentMark();
+                    }
+                    
+                }
+                
+                // select marker
+                else
+                {
+                    marker.setIcon(getMarkerUrl("blue"));
+                    selectedMarker.current = marker;
+                }
+            } 
         })
 
         markers.current = [...markers.current, marker];
@@ -175,7 +256,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
 
                 else
                 {
-                    showPopUp(status, "Error while calculating edge between 2 selected markers!");
+                    showPopUp({title:status, message:"Error while calculating edge between 2 selected markers!"})
                 }
             })
         }
@@ -183,8 +264,16 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     }
 
     const unselectCurrentMark = () => {
-        selectedMarker.current.setIcon(getMarkerUrl("green"));
-        selectedMarker.current = null;
+
+        if (selectedMarker.current)
+        {
+            unselectMark(selectedMarker.current)
+            selectedMarker.current = null;
+        }
+    }
+
+    const unselectMark = (marker) => {
+        marker.setIcon(getMarkerUrl("green"));
     }
 
     const handleMapClick = (event) => {
@@ -225,7 +314,16 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
             })
         }
 
+        unselectCurrentMark();
         solutionMode.current = false;
+
+        solutionMarkers.current.forEach((marker) => {
+            unselectMark(marker);
+        })
+
+        solutionMarkers.current = [];
+        if (solutionDirectionResults.length) setSolutionDirectionResult([]);
+        setDisableSolve(true);
     }
 
     const startSolutionMode = (event) => {
@@ -246,7 +344,9 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
             drawingManager.setDrawingMode(null);
         }
 
+        unselectCurrentMark();
         solutionMode.current = true;
+        setDisableSolve(false);
     }
 
     // load google map
@@ -295,7 +395,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
 
                             />
 
-                            {
+                            {!solutionDirectionResults.length &&
                                 directionResults.map((resultObj) => 
                                     <DirectionsRenderer 
                                         key={resultObj.firstId + resultObj.secondId}
@@ -305,6 +405,18 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                                         }}
                                     />
                                 )
+                            }
+
+                            {solutionDirectionResults.length &&
+                                solutionDirectionResults.map((resultObj) => 
+                                <DirectionsRenderer 
+                                    key={resultObj.firstId + resultObj.secondId}
+                                    directions={resultObj.result}
+                                    options={{
+                                        suppressMarkers: true,
+                                    }}
+                                />
+                            )
                             }
 
                         </GoogleMap>
@@ -333,14 +445,70 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                                 title="Switch between editing mode and solution mode (solution mode allows user to choose 2 marks in order to find the shortest path)"
                                 onClick={toggleMode}
                                 type='button'
+                                style={{
+                                    color: solutionMode.current? "#f1356d" : "#fff",
+                                    backgroundColor: solutionMode.current? "#fff" : "#f1356d",
+                                    margin: solutionMode.current? "2px" : "0px",
+                                    
+                                }}
                             >
                             Toggle Mode
                             </button>
 
+                            {!disableSolve && 
+                                <div className="toggle-container">
+                                    <button
+                                    className="fix-width-button toggle-button"
+                                    title="Use Uniform Cost Search algorithm to find the shortest path between 2 selected markers"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setAlgorithm(0);
+                                    }}
+                                    type='button'
+                                    style={{
+                                        color: algorithm === 0? "#f1356d" : "#fff",
+                                        backgroundColor: algorithm === 0? "#fff" : "#f1356d",
+                                        margin: "2px",
+                                        borderTopLeftRadius: "20px",
+                                        borderBottomLeftRadius: "20px",
+                                        borderTopRightRadius: "0px",
+                                        borderBottomRightRadius: "0px",
+                                        width: "50px"
+                                        
+                                    }}
+                                    >
+                                    UCF
+                                    </button>
+
+                                    <button
+                                    className="fix-width-button toggle-button"
+                                    title="Use A Star algorithm to find the shortest path between 2 selected markers"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setAlgorithm(1);
+
+                                    }}
+                                    type='button'
+                                    style={{
+                                        color: algorithm === 1? "#f1356d" : "#fff",
+                                        backgroundColor: algorithm === 1? "#fff" : "#f1356d",
+                                        margin: "2px",
+                                        borderTopLeftRadius: "0px",
+                                        borderBottomLeftRadius: "0px",
+                                        borderTopRightRadius: "20px",
+                                        borderBottomRightRadius: "20px",
+                                        width: "50px"
+                                    }}
+                                    >
+                                    A*
+                                    </button>
+                                </div>
+                            }
+
                             <button
                                 className="fix-width-button"
                                 title="Find shortest path between 2 selected marks in solution mode"
-                                onClick={toggleMode}
+                                onClick={handleSolve}
                                 type='button'
                                 disabled={disableSolve}
                             >

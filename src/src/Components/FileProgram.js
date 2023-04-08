@@ -11,6 +11,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
     const [adjMatrix, setMatrix] = useState(null);
     const [names, setNames] = useState(null);
     const [solution, setSolution] = useState(null);
+    const [algorithm, setAlgorithm] = useState(0);
 
     // handlers
     const handleConfigFileInput = async (event) => {
@@ -161,17 +162,18 @@ const FileProgram = ({setLoading, showPopUp}) => {
                     ></input>
                 </label>
 
-                <label className="inputFileLabel">
-                    <span>Insert Node Name Configuration</span>
-                    <input
-                        className="inputFile"
-                        type="file"
-                        accept=".txt"
-                        onChange={(e) => handleNameFileInput(e)}
-                        onClick={(e) => e.target.value = null}
-                    ></input>
-                </label>
-                
+                {adjMatrix &&
+                    <label className="inputFileLabel">
+                        <span>Insert Node Name Configuration</span>
+                        <input
+                            className="inputFile"
+                            type="file"
+                            accept=".txt"
+                            onChange={(e) => handleNameFileInput(e)}
+                            onClick={(e) => e.target.value = null}
+                        ></input>
+                    </label>
+                }
                 {adjMatrix && <div>
                     <label>Source Node :</label>
                     <select value={sourceNode} onChange={(e) => {e.preventDefault(); setSourceNode(e.target.value)}}>
@@ -197,6 +199,16 @@ const FileProgram = ({setLoading, showPopUp}) => {
                                 )
                             })
                         }
+                    </select>
+
+                    <label>Algorithm :</label>
+                    <select value={algorithm} onChange={(e) => {e.preventDefault(); setAlgorithm(e.target.value)}}>
+                            <option value={0}>
+                                Uniform Cost Search
+                            </option>
+                            <option value={1}>
+                                A Star
+                            </option>
                     </select>
 
                     <button type="button" className="solve-button" onClick={handleSolve}>Solve</button>
