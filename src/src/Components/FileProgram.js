@@ -62,7 +62,12 @@ const FileProgram = ({setLoading, showPopUp}) => {
 
     const handleSolve = async (event) => {
         event.preventDefault();
-        setSolution(UniformCostSearch(adjMatrix, sourceNode, targetNode));
+        if (algorithm === 0) {
+            setSolution(UniformCostSearch(adjMatrix, sourceNode, targetNode));
+        }
+        else if (algorithm === 1) {
+            setSolution([]);
+        }
         
     }
 
