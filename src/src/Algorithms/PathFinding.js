@@ -1,4 +1,4 @@
-import {PriorityQueue} from '../Components/PriorityQueue'
+import {PriorityQueue} from './PriorityQueue'
 
 const UniformCostSearch = (adjMatrix, source, dest) => {
     source = parseInt(source);
@@ -18,22 +18,22 @@ const UniformCostSearch = (adjMatrix, source, dest) => {
         vis[top[1]] = true;
         prev[top[1]] = top[2];
         
-        if (top[1] == dest) {
+        if (top[1] === dest) {
             break;
         }
         
         for (var i = 0; i < adjMatrix[top[1]].length; i++) {
-            if (vis[i] || adjMatrix[top[1]][i] == 'x') continue;
+            if (vis[i] || adjMatrix[top[1]][i].toUpperCase() === 'X') continue;
             pq.push([top[0] + parseInt(adjMatrix[top[1]][i]), i, top[1]]);
         }
     }
 
-    if (prev[dest] == -1) return (null);
+    if (prev[dest] === -1) return [];
 
     // Backtrack
     var path = [];
     var pos = dest;
-    while(pos != -1) {
+    while(pos !== -1) {
         path.push(pos);
         pos = prev[pos];
     }

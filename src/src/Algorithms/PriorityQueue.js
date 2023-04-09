@@ -1,7 +1,7 @@
 class PriorityQueue {
     // TODO using max heap
     constructor() {
-        this.values = new Array();
+        this.values = [];
     }
 
     push(element) {
