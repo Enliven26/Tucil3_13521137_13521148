@@ -93,7 +93,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
 
             if (!heuristic)
             {
-                showPopUp()
+                showPopUp({title:"Invalid Data Error", message:"Coordinates file is required!"})
             }
 
             else
