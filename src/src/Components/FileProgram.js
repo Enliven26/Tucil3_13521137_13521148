@@ -13,6 +13,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
     const [solution, setSolution] = useState(null);
     const [algorithm, setAlgorithm] = useState(0);
     const [isDirected, setDirected] = useState(false);
+    const [heuristic, setHeuristic] = useState(null);
 
     // handlers
     const handleConfigFileInput = async (event) => {
@@ -28,6 +29,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
             if (res.success) {
                 setSolution(null);
                 setNames(null);
+                setHeuristic(null);
                 setConfigFile(event.target.files[0]);
                 setMatrix(res.data);
                 setSourceNode(0);
@@ -60,15 +62,47 @@ const FileProgram = ({setLoading, showPopUp}) => {
         }
     }
 
+    const handleCoordinateFileInput = async (event) => {
+        
+        event.preventDefault();
+        if (event.target.files[0] !== undefined)
+        {
+            setLoading(true);
+            var res = await readFile({file: event.target.files[0], validationFunction: isCoordinateFileValid})
+
+            if (res.success) {
+                setHeuristic(res.data);
+            }
+
+            else {
+                showPopUp({title:"File Configuration Error", message:res.msg});
+            }
+
+            setLoading(false);
+        }
+    }
     const handleSolve = async (event) => {
         event.preventDefault();
         if (algorithm === 0) {
+
+            setLoading(true);
             setSolution(UniformCostSearch(adjMatrix, sourceNode, targetNode));
+            setLoading(false);
         }
         else if (algorithm === 1) {
-            setSolution([]);
+
+            if (!heuristic)
+            {
+                showPopUp()
+            }
+
+            else
+            {
+                setLoading(true);
+                setSolution([]);
+                setLoading(false);
+            }
         }
-        
     }
 
     const handleGraphTypeChange = async (event) => {
@@ -145,7 +179,6 @@ const FileProgram = ({setLoading, showPopUp}) => {
         
         if (!lines || lines.length === 0 || lines[0].length === 0) return {"success": false, "msg": "Name file is empty!"}
 
-
         const row = lines.length
         const nodeCount = adjMatrix.length
 
@@ -157,9 +190,40 @@ const FileProgram = ({setLoading, showPopUp}) => {
         return {"success": true, "msg": "Name File is valid", "data": lines};
     }
 
-    const isCoordinateFileValid = (lines) => {
+    const isCoordinateFileValid = ({lines}) => {
 
-        return {"success": true, "msg": "Name File is valid", "data": lines};
+        if (!lines || lines.length === 0 || lines[0].length === 0) return {"success": false, "msg": "Coordinates file is empty!"}
+        const row = lines.length
+        const nodeCount = adjMatrix.length
+        const stringCoordinates = lines.map((line) => line.split(/\s+/))
+        for (var i = 0; i < row; i++) {
+
+            const line = stringCoordinates[i]
+
+            if (line.length !== 2) 
+                    return {"success": false, 
+                        "msg": "A line should only contain 2 column (x-axis and y-axis)!"}
+
+            for (var j = 0; j < 2; j++) {
+
+                var stringValue = line[j]
+
+                if (!(/^\d+$/.test(stringValue))) 
+                    return {"success": false, 
+                        "msg": "Coordinates should only contain numbers!"}
+            }
+        }
+
+        if (row !== nodeCount) return {"success": false, "msg": `Coordinates file doesn't contain ${nodeCount} coordinates for all nodes!`}
+
+        const coordinates = [];
+
+        for (i = 0; i < row; i++)
+        {
+            coordinates.push([parseInt(stringCoordinates[i][0]), parseInt(stringCoordinates[i][1])]);
+        }
+
+        return {"success": true, "msg": "Coordinate File is valid", "data": coordinates};
     }
     
     const readFile = async ({file, validationFunction, graphType}) => {
@@ -189,8 +253,10 @@ const FileProgram = ({setLoading, showPopUp}) => {
             {configFile && adjMatrix && <ConfigMap adjacencyMatrix={adjMatrix} names={names} solution={solution} isDirected={isDirected}/>}
 
             <form>
-                <label className="inputFileLabel">
-                    <span>Insert Adjacency Matrix</span>
+                <label 
+                    className="inputFileLabel"
+                >
+                    <span style={{color: adjMatrix? "#77dd76":"#f1356d"}} >Insert Adjacency Matrix</span>
                     <input
                         className="inputFile"
                         type="file"
@@ -200,9 +266,28 @@ const FileProgram = ({setLoading, showPopUp}) => {
                     ></input>
                 </label>
 
+                {adjMatrix && algorithm === 1 &&
+                    <label 
+                        className="inputFileLabel" 
+                        title="Straight line distance for every node is calculated from target node that will be selected."
+                    >
+                        <span style={{color: heuristic? "#77dd76":"#f1356d"}}>Insert Straight Line Distance Configuration</span>
+                        <input
+                            className="inputFile"
+                            type="file"
+                            accept=".txt"
+                            onChange={(e) => handleCoordinateFileInput(e)}
+                            onClick={(e) => e.target.value = null}
+                        ></input>
+                    </label>
+                }
+
                 {adjMatrix &&
-                    <label className="inputFileLabel">
-                        <span>Insert Node Name Configuration</span>
+                    <label 
+                        className="inputFileLabel" 
+                        title="Name configuration file must include a string for one node for every line"
+                    >
+                        <span style={{color: names? "#77dd76":"#f1356d"}}>Insert Node Name Configuration</span>
                         <input
                             className="inputFile"
                             type="file"

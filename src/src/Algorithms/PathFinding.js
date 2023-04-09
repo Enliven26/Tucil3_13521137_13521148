@@ -94,7 +94,7 @@ const AyStar = (adjMatrix, source, dest, distOption) => {
             break;
         }
         
-        for (var i = 0; i < adjMatrix[top[1]].length; i++) {
+        for (i = 0; i < adjMatrix[top[1]].length; i++) {
             if (vis[i] || adjMatrix[top[1]][i].toUpperCase() === 'X') continue;
             pq.push([top[3] + parseInt(adjMatrix[top[1]][i]) + distanceToDest[i], 
                     i, 
