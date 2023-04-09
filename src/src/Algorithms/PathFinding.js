@@ -4,7 +4,7 @@ const UniformCostSearch = (adjMatrix, source, dest) => {
     source = parseInt(source);
     dest = parseInt(dest);
 
-    var pq = new PriorityQueue();
+    var pq = new PriorityQueue({compareFunction: (a, b) => b[0] - a[0]});
     var vis = new Array(adjMatrix.length).fill(false);
     var prev = new Array(adjMatrix.length).fill(-1);
 
@@ -75,7 +75,7 @@ const AyStar = (adjMatrix, source, dest, distOption) => {
     }
 
     // calculate distance with A*
-    var pq = new PriorityQueue();
+    var pq = new PriorityQueue({compareFunction: (a, b) => b[0] - a[0]});
     var vis = new Array(adjMatrix.length).fill(false);
     var prev = new Array(adjMatrix.length).fill(-1);
 
