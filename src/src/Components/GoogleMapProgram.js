@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { GoogleMap, useJsApiLoader, DrawingManager, DirectionsRenderer, InfoWindow } from '@react-google-maps/api';
 import { v4 as uuid } from 'uuid';
 import Readme from "./Readme";

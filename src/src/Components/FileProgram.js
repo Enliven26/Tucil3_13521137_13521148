@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import ConfigMap from "./ConfigMap";
 import { UniformCostSearch } from "../Algorithms/PathFinding";
 
@@ -12,6 +12,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
     const [names, setNames] = useState(null);
     const [solution, setSolution] = useState(null);
     const [algorithm, setAlgorithm] = useState(0);
+    const [isDirected, setDirected] = useState(false);
 
     // handlers
     const handleConfigFileInput = async (event) => {
@@ -22,7 +23,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
         {
             setLoading(true);
 
-            var res = await readFile(event.target.files[0], isConfigFileValid)
+            var res = await readFile({file: event.target.files[0], validationFunction: isConfigFileValid})
 
             if (res.success) {
                 setSolution(null);
@@ -46,14 +47,14 @@ const FileProgram = ({setLoading, showPopUp}) => {
         if (event.target.files[0] !== undefined)
         {
             setLoading(true);
-            var res = await readFile(event.target.files[0], isNameFileValid)
+            var res = await readFile({file: event.target.files[0], validationFunction: isNameFileValid})
 
             if (res.success) {
-                setNames(res.data)
+                setNames(res.data);
             }
 
             else {
-                showPopUp({title:"File Configuration Error", message:res.msg})
+                showPopUp({title:"File Configuration Error", message:res.msg});
             }
             setLoading(false);
         }
@@ -65,11 +66,34 @@ const FileProgram = ({setLoading, showPopUp}) => {
         
     }
 
-    const isConfigFileValid = (lines) => {
+    const handleGraphTypeChange = async (event) => {
+        const value = parseInt(event.target.value);
+
+        event.preventDefault(); 
+        if (configFile)
+        {
+         
+            const res = await readFile({file: configFile, validationFunction: isConfigFileValid, graphType: value});
+
+            setLoading(false);
+
+            if (!res.success)
+            {
+                showPopUp({title:"Graph Type Change Error", message:res.msg});
+                return;
+            }
+        }
+
+        setDirected(value? true : false);
+    }
+
+    const isConfigFileValid = ({lines, graphType}) => {
         if (!lines || lines.length === 0 || lines[0].length === 0) return {"success": false, "msg": "Configuration file is empty!"}
 
+        if (graphType === undefined) {
+            graphType = isDirected;
+        }
         const matrix = lines.map((line) => line.split(/\s+/))
-
         const row = matrix.length
         const column = matrix[0].length
 
@@ -99,9 +123,9 @@ const FileProgram = ({setLoading, showPopUp}) => {
         {
             for (var k = 0; k < column; k++)
             {
-                if (matrix[j][k] !== matrix[k][j])
+                if (!graphType && matrix[j][k] !== matrix[k][j])
                     return {"success": false, 
-                        "msg": "Adjancency matrix should be symetric!"}
+                        "msg": "Adjancency matrix for undirected graph should be symetric! (Change graph-type choice if it is intended)"}
 
                 if (j === k && parseInt(matrix[j][k]) !== 0)
                     return {"success": false, 
@@ -112,7 +136,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
         return {"success": true, "msg": "Configuration File is valid", "data": matrix};
     }
 
-    const isNameFileValid = (lines) => {
+    const isNameFileValid = ({lines}) => {
         
         if (!lines || lines.length === 0 || lines[0].length === 0) return {"success": false, "msg": "Name file is empty!"}
 
@@ -127,9 +151,18 @@ const FileProgram = ({setLoading, showPopUp}) => {
 
         return {"success": true, "msg": "Name File is valid", "data": lines};
     }
+
+    const isCoordinateFileValid = (lines) => {
+
+        return {"success": true, "msg": "Name File is valid", "data": lines};
+    }
     
-    const readFile = async (file, validationFunction) => {
-        
+    const readFile = async ({file, validationFunction, graphType}) => {
+
+        if (graphType === undefined) {
+            graphType = isDirected;
+        }
+
         var lines = await new Promise((resolve) => {
             const reader = new FileReader()
             reader.onload = async (e) => { 
@@ -140,7 +173,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
             reader.readAsText(file)
         })
 
-        return validationFunction(lines)
+        return validationFunction({lines: lines, graphType: graphType})
 
     }
 
@@ -148,7 +181,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
         <div className='program'>
             <h2>File App</h2>
 
-            {configFile && adjMatrix && <ConfigMap adjacencyMatrix={adjMatrix} names={names} solution={solution}/>}
+            {configFile && adjMatrix && <ConfigMap adjacencyMatrix={adjMatrix} names={names} solution={solution} isDirected={isDirected}/>}
 
             <form>
                 <label className="inputFileLabel">
@@ -174,9 +207,23 @@ const FileProgram = ({setLoading, showPopUp}) => {
                         ></input>
                     </label>
                 }
+
+                <label>Graph Type :</label>
+                    <select value={isDirected? 1 : 0} onChange={handleGraphTypeChange}>
+
+                        <option value={0}>
+                            Undirected Graph
+                        </option>
+
+                        <option value={1}>
+                            Directed Graph
+                        </option>
+                        
+                    </select>
+
                 {adjMatrix && <div>
                     <label>Source Node :</label>
-                    <select value={sourceNode} onChange={(e) => {e.preventDefault(); setSourceNode(e.target.value)}}>
+                    <select value={sourceNode} onChange={(e) => {e.preventDefault(); setSourceNode(parseInt(e.target.value))}}>
                         {
                             adjMatrix.map((_, index) => {
                                 return(
@@ -189,7 +236,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
                     </select>
 
                     <label>Target Node :</label>
-                    <select value={targetNode} onChange={(e) => {e.preventDefault(); setTargetNode(e.target.value)}}>
+                    <select value={targetNode} onChange={(e) => {e.preventDefault(); setTargetNode(parseInt(e.target.value))}}>
                         {
                             adjMatrix.map((_, index) => {
                                 return(
@@ -202,7 +249,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
                     </select>
 
                     <label>Algorithm :</label>
-                    <select value={algorithm} onChange={(e) => {e.preventDefault(); setAlgorithm(e.target.value)}}>
+                    <select value={algorithm} onChange={(e) => {e.preventDefault(); setAlgorithm(parseInt(e.target.value))}}>
                             <option value={0}>
                                 Uniform Cost Search
                             </option>

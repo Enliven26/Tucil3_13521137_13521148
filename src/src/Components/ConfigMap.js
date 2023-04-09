@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect } from "react";
 import { v4 as uuid } from 'uuid';
 
 
-const ConfigMap = ({adjacencyMatrix, names, solution}) => {
+const ConfigMap = ({adjacencyMatrix, names, solution, isDirected}) => {
 
     const [windowWidth, setWidth] = useState(window.innerWidth);
 
@@ -62,15 +62,19 @@ const ConfigMap = ({adjacencyMatrix, names, solution}) => {
                 labelHighlightBold: false,
                 shape: "circle",
             })
-            for (var j = i+1; j < nodeCount; j++)
+            for (var j = 0; j < nodeCount; j++)
             {
+                if (i === j) continue;
+                if (!isDirected && j < i) continue;
+
+
                 if (adjacencyMatrix[i][j].toUpperCase() !== "X")
                 {
                     const tempEdge = {
                         from: i,
                         to: j,
                         arrows: {
-                            to: false,
+                            to: isDirected,
                         },
                         label: adjacencyMatrix[i][j],
                         physics: false,
@@ -81,6 +85,7 @@ const ConfigMap = ({adjacencyMatrix, names, solution}) => {
                         font: font,
                         labelHighlightBold: false,
                         selectionWidth: 0,
+                        smooth: {enabled: isDirected? true : false,  type: 'curvedCW', roundness: 0.2}
                     }
 
                     var secondSolutionIndex = -1;
@@ -114,7 +119,7 @@ const ConfigMap = ({adjacencyMatrix, names, solution}) => {
 
             setGraph(tempGraph)
         }
-    }, [adjacencyMatrix, nodeCount, names, solution, windowWidth])
+    }, [adjacencyMatrix, nodeCount, names, solution, windowWidth, isDirected])
 
     const graphKey = useMemo(uuid, [graph, adjacencyMatrix, solution])
 
