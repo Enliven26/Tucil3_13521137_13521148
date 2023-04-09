@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { GoogleMap, useJsApiLoader, DrawingManager, DirectionsRenderer, InfoWindow } from '@react-google-maps/api';
 import { v4 as uuid } from 'uuid';
+import Readme from "./Readme";
 
 const libraries = ['geometry', 'drawing', 'places']
 
@@ -15,7 +16,10 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         borderColor: '#f1356d',
         borderWidth: '4px',
         borderStyle: "solid",
+        margin: "0px",
+        padding: "0px",
         marginBottom: "20px",
+        
     };
 
     // const options = {
@@ -44,6 +48,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     const [solutionDirectionResults, setSolutionDirectionResult] = useState([]);
     const [solutionInfo, setSolutionInfo] = useState(null);
     const [infoWindow, setInfoWindow] = useState(/** @type google.maps.InfoWindow */(null));
+    const [showReadme, setShowReadme] = useState(false);
 
     // program refs
     const solutionMode = useRef(false);
@@ -419,7 +424,19 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         <div className='program'>
             <h2>Google Map App</h2>
 
+            <button className="text-button"
+                title="Clear marks on current map and start editing mode"
+                onClick={(e) => setShowReadme(!showReadme)}
+                type='button'
+            >
+            {showReadme? "Hide Documentation" : "Show Documentation"}
+            </button>
+
+            {showReadme &&
+                <Readme/>
+            }
             <div className="gmap display">
+
                 {
                     loadError && <span className='note'>{"Error occured while loading google map: " + loadError.message}</span>
                 }

@@ -2,7 +2,7 @@ import './App.css';
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { useState, useRef } from "react";
-import Home from './Components/Home';
+import Welcome from './Components/Welcome';
 import NavBar from './Components/NavBar';
 import Program from './Components/Program';
 import FileProgram from './Components/FileProgram';
@@ -49,7 +49,7 @@ function App() {
       <div className='App'>
         <NavBar/>
         <Routes>
-            <Route exact path='/' element={<Home/>}/>
+            <Route exact path='/' element={<Welcome/>}/>
             <Route exact path='/app' element={<Program/>}/>
             <Route exact path='app/using-file' element={<FileProgram {...props}/>}/>
             <Route exact path='app/using-gmap' element={<GoogleMapProgram {...props}/>}/>

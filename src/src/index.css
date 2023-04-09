@@ -47,6 +47,11 @@
   color: #f1356d;
 }
 
+.navbar h2 {
+  font-size: 20px;
+  color: #f1356d;
+}
+
 /* welcome page */
 
 .welcome {
@@ -63,12 +68,13 @@
 .welcome label{
   display: block;
   margin: 10px auto;
-  max-width: 25%;
+  max-width: 30%;
 }
 
 .home {
   max-width: 400px;
   margin: 0 auto;
+  margin-top: 10px;
   text-align: center;
 }
 
@@ -86,6 +92,7 @@
   text-align: center;
 }
 
+
 /* program */
 
 .program {
@@ -99,7 +106,7 @@
   
   width: 70%;
   margin:0 auto;
-  padding: 10px;
+  padding-bottom: 10px;
   border: #f1356d;
   border-width: 1px;
   border-radius: 10px;
@@ -151,6 +158,11 @@
   padding: 8px;
   border-radius: 8px;
   cursor: pointer;
+}
+
+.program .text-button {
+  background: #fff;
+  color: #f1356d;
 }
 
 .program .solve-button {
@@ -327,3 +339,37 @@
   background-color: rgba(49, 49, 49, 0.7);
 }
 
+/* readme */
+
+.readme {
+  margin: 0 auto;
+  border-radius: 10px;
+  background-color: #ededed;
+  padding: 10px;
+  margin-bottom: 30px;
+}
+
+.readme h2 {
+  color: #333;
+  margin: 0;
+  margin-bottom: 20px;
+}
+
+.readme .steps {
+  display: flex;
+  flex-direction: column;
+  text-align: start;
+  padding-left: 2%;
+  padding-right: 2%;
+}
+
+.readme span {
+  max-width: 100%;
+}
+
+.readme .steps .step-content {
+  display: flex;
+  flex-direction: column;
+  text-align: start;
+  margin-bottom: 10px;
+}
