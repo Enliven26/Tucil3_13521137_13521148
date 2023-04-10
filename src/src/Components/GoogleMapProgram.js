@@ -40,7 +40,6 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     }
 
     // program states
-    const [adjMatrix, setMatrix] = useState(null);
     const [drawingManager, setDrawingManager] = useState(/** @type google.maps.drawing.DrawingManager */ (null));
     const [map, setMap] = useState(/** @type google.maps.Map */ (null));
     const [disableSolve, setDisableSolve] = useState(true);
@@ -83,7 +82,6 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
 
         setLoading(true);
 
-        const nodeCount = markers.current.length;
         const startMarkerIdx = markers.current.findIndex(marker => marker.id === solutionMarkers.current[0].id);
         const endMarkerIdx = markers.current.findIndex(marker => marker.id === solutionMarkers.current[1].id);
         const adjMatrix = [];
@@ -121,6 +119,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         const [solution, solutionDistance] = (algorithm === 0 
             ? UniformCostSearch(adjMatrix, startMarkerIdx, endMarkerIdx)
             : AyStar(adjMatrix, startMarkerIdx, endMarkerIdx, {distanceToDest: heuristicValues}));
+        console.log("bruh");
         const temp = [];
 
         solution.forEach((val, idx) => {
@@ -147,6 +146,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         setSolutionInfo({
             position: solutionMarkers.current[1].getPosition(),
             distance: solutionDistance,
+            solution: solution,
         })
 
         setSolutionDirectionResult(temp);
@@ -469,8 +469,17 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                                 <>
                                 {solutionInfo &&
                                     <div className="info-window">
-                                        <h3>Result</h3>
-                                        <span className="note">Shortest Distance: {solutionInfo.distance}</span>   
+                                        <h3>{"Result" + (solutionInfo.solution.length === 0 ? " Not Found" : "")}</h3>
+                                        {solutionInfo.solution.length > 0 &&
+                                            <div>
+                                                <span className="note">Shortest Distance: {solutionInfo.distance}</span>  
+                                                <span className="note"></span> 
+                                            </div>
+                                        }
+
+                                        {solutionInfo.solution.length === 0 &&
+                                                <span className="note">There is no path from source node to target node</span>  
+                                        }
                                     </div>
                                 }
                                 </>

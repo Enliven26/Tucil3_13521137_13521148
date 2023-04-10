@@ -47,7 +47,7 @@ const ConfigMap = ({adjacencyMatrix, names, solution, isDirected}) => {
             if (solution)
             {
                 firstSolutionIndex = solution.indexOf(i);
-                isSolutionPart = (firstSolutionIndex !== -1) && (firstSolutionIndex < solution.length - 1);
+                isSolutionPart = (firstSolutionIndex !== -1) && (firstSolutionIndex < solution.length);
             }
 
             tempGraph.nodes.push({
@@ -89,7 +89,7 @@ const ConfigMap = ({adjacencyMatrix, names, solution, isDirected}) => {
                     }
 
                     var secondSolutionIndex = -1;
-                    var isSolutionPartFull
+                    var isSolutionPartFull = false;
                     
                     if (solution)
                     {
@@ -107,7 +107,7 @@ const ConfigMap = ({adjacencyMatrix, names, solution, isDirected}) => {
                             tempEdge.color.color = "#77dd76";
                         }
 
-                        else if (solution[secondSolutionIndex+1] === i)
+                        else if (!isDirected && solution[secondSolutionIndex+1] === i)
                         {
                             tempEdge.arrows.from = true;
                             tempEdge.color.color = "#77dd76";
