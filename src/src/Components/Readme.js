@@ -23,7 +23,7 @@ const Readme = () => {
 
                 <div className="step-content">
                     <h3>Reset Position Button</h3>
-                    <label className="note">This button will move the camera to initial position (current default center is Bandung Institute of Technology).</label>
+                    <label className="note">This button will move the camera to initial position. Current default center is Bandung Institute of Technology. You can change the default center above the map display in latitude and longitude format.</label>
                 </div>
 
                 <div className="step-content">

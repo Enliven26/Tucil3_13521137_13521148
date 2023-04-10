@@ -13,9 +13,24 @@ const FileProgram = ({setLoading, showPopUp}) => {
     const [solution, setSolution] = useState(null);
     const [algorithm, setAlgorithm] = useState(0);
     const [isDirected, setDirected] = useState(false);
-    const [heuristic, setHeuristic] = useState(null);
+    const [coordinates, setCoordinates] = useState(null);
 
     // handlers
+
+    // returns 2 coordinates ([lat, lng]) straight line distance in meter
+
+    const getStraightLineDistance = (firstCoordinate, secondCoordinate) => {
+        var R = 6371.0710; // Radius of the Earth in km
+        var rlat1 = firstCoordinate[0] * (Math.PI/180); // Convert degrees to radians
+        var rlat2 = secondCoordinate[0] * (Math.PI/180); // Convert degrees to radians
+        var difflat = rlat2-rlat1; // Radian difference (latitudes)
+        var difflon = (secondCoordinate[1]-firstCoordinate[1]) * (Math.PI/180); // Radian difference (longitudes)
+
+        var d = 2 * R * Math.asin(Math.sqrt(Math.sin(difflat/2)*Math.sin(difflat/2)+Math.cos(rlat1)*Math.cos(rlat2)*Math.sin(difflon/2)*Math.sin(difflon/2)));
+        return d * 1000;
+
+    }
+
     const handleConfigFileInput = async (event) => {
 
         event.preventDefault();
@@ -29,7 +44,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
             if (res.success) {
                 setSolution(null);
                 setNames(null);
-                setHeuristic(null);
+                setCoordinates(null);
                 setConfigFile(event.target.files[0]);
                 setMatrix(res.data);
                 setSourceNode(0);
@@ -71,7 +86,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
             var res = await readFile({file: event.target.files[0], validationFunction: isCoordinateFileValid})
 
             if (res.success) {
-                setHeuristic(res.data);
+                setCoordinates(res.data);
             }
 
             else {
@@ -93,7 +108,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
         }
         else if (algorithm === 1) {
 
-            if (!heuristic)
+            if (!coordinates)
             {
                 showPopUp({title:"Invalid Data Error", message:"Coordinates file is required!"})
             }
@@ -101,8 +116,15 @@ const FileProgram = ({setLoading, showPopUp}) => {
             else
             {
                 setLoading(true);
+                const heuristic = [];
+
+                for (var i = 0; i < adjMatrix.length; i++)
+                {
+                    heuristic.push(getStraightLineDistance(coordinates[i], coordinates[targetNode]))
+                }
                 pathFindingResult = AyStar(adjMatrix, sourceNode, targetNode, 
-                                        {coordinates: heuristic});
+                                        {"distanceToDest": heuristic});
+                                        
                 setSolution(pathFindingResult.solution);
                 setLoading(false);
             }
@@ -156,7 +178,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
 
                 if (!(stringValue.toUpperCase() === "X") && !(/^\d+$/.test(stringValue))) 
                     return {"success": false, 
-                        "msg": "Configuration file contains invalid character(s)!\nNumbers and X's (case-insensitive) are the only valid characters"}
+                        "msg": "Configuration file contains invalid character(s)!\nPositive numbers and X's (case-insensitive) are the only valid characters"}
             }
         }
 
@@ -208,15 +230,15 @@ const FileProgram = ({setLoading, showPopUp}) => {
 
             if (line.length !== 2) 
                     return {"success": false, 
-                        "msg": "A line should only contain 2 column (x-axis and y-axis)!"}
+                        "msg": "A line should only contain 2 column (latitude and longitude)!"}
 
             for (var j = 0; j < 2; j++) {
 
                 var stringValue = line[j]
 
-                if (!(/^\d+$/.test(stringValue))) 
+                if (!(/^[+-]?\d+(\.\d+)?$/.test(stringValue))) 
                     return {"success": false, 
-                        "msg": "Coordinates should only contain numbers!"}
+                        "msg": "Coordinates should only contain integer or floating-point numbers!"}
             }
         }
 
@@ -226,9 +248,10 @@ const FileProgram = ({setLoading, showPopUp}) => {
 
         for (i = 0; i < row; i++)
         {
-            coordinates.push([parseInt(stringCoordinates[i][0]), parseInt(stringCoordinates[i][1])]);
+            coordinates.push([parseFloat(stringCoordinates[i][0]), parseFloat(stringCoordinates[i][1])]);
         }
 
+        console.log(coordinates);
         return {"success": true, "msg": "Coordinate File is valid", "data": coordinates};
     }
     
@@ -277,7 +300,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
                         className="inputFileLabel" 
                         title="Straight line distance for every node is calculated from target node that will be selected."
                     >
-                        <span style={{color: heuristic? "#77dd76":"#f1356d"}}>Insert Straight Line Distance Configuration</span>
+                        <span style={{color: coordinates? "#77dd76":"#f1356d"}}>Insert Straight Line Distance Configuration</span>
                         <input
                             className="inputFile"
                             type="file"

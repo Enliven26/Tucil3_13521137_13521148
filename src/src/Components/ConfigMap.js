@@ -76,7 +76,7 @@ const ConfigMap = ({adjacencyMatrix, names, solution, isDirected}) => {
                         arrows: {
                             to: isDirected,
                         },
-                        label: adjacencyMatrix[i][j],
+                        label: adjacencyMatrix[i][j].toString() + " m",
                         physics: false,
                         color: {
                             color: "#f1356d",

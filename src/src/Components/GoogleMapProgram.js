@@ -32,7 +32,6 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     //     scrollwheel: true,
     // }
 
-    const center = {lat: -6.8915, lng: 107.6107}
     const zoom = 16;
 
     const getMarkerUrl = (color) => {
@@ -49,6 +48,8 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     const [solutionInfo, setSolutionInfo] = useState(null);
     const [infoWindow, setInfoWindow] = useState(/** @type google.maps.InfoWindow */(null));
     const [showReadme, setShowReadme] = useState(false);
+    const [latitudeCenter, setLatitudeCenter] = useState(-6.8915);
+    const [longitudeCenter, setLongitudeCenter] = useState(107.6107);
 
     // program refs
     const solutionMode = useRef(false);
@@ -57,20 +58,22 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     const directionResultsRef = useRef([]);
     const solutionMarkers = useRef([]);
 
-    // handlers
-    // returns straight line distance in meter
-    const getStraightLineDistance = (firstMarker, secondMarker) => {
+    // handlers    
+
+    // returns 2 markers straight line distance in meter
+
+    const getMarkerStraightLineDistance = (firstMarker, secondMarker) => {
         var R = 6371.0710; // Radius of the Earth in km
         var rlat1 = firstMarker.position.lat() * (Math.PI/180); // Convert degrees to radians
         var rlat2 = secondMarker.position.lat() * (Math.PI/180); // Convert degrees to radians
         var difflat = rlat2-rlat1; // Radian difference (latitudes)
         var difflon = (secondMarker.position.lng()-firstMarker.position.lng()) * (Math.PI/180); // Radian difference (longitudes)
-  
+
         var d = 2 * R * Math.asin(Math.sqrt(Math.sin(difflat/2)*Math.sin(difflat/2)+Math.cos(rlat1)*Math.cos(rlat2)*Math.sin(difflon/2)*Math.sin(difflon/2)));
         return d * 1000;
 
-      }
-    
+    }
+
     const handleSolve = (e) => {
         e.preventDefault();
 
@@ -117,9 +120,9 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         });
 
         markers.current.forEach((marker) => {
-            heuristicValues.push(getStraightLineDistance(marker, solutionMarkers.current[1]))
+            heuristicValues.push(getMarkerStraightLineDistance(marker, solutionMarkers.current[1]))
         })
-
+        
         var pathFindingResults;
         if (algorithm === 0) {
             pathFindingResults = UniformCostSearch(adjMatrix, startMarkerIdx, endMarkerIdx);
@@ -145,10 +148,16 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
             }
         });  
 
-        console.log(heuristicValues);
+        // console.log(heuristicValues);
         console.log(adjMatrix);
-        console.log(solution);
-        console.log(pathFindingResults.distance)
+
+        const coords = [];
+
+        markers.current.forEach((marker) => coords.push([marker.getPosition().lat(), marker.getPosition().lng()]))
+
+        console.log(coords);
+        // console.log(solution);
+        // console.log(pathFindingResults.distance)
         
         setSolutionInfo({
             position: solutionMarkers.current[1].getPosition(),
@@ -171,7 +180,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         if (e) e.preventDefault();
         
         if (map) {
-            map.panTo(center);
+            map.panTo({lat: latitudeCenter, lng: longitudeCenter});
             map.setZoom(zoom);
         }
     }
@@ -450,9 +459,54 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                 }
                 {isLoaded &&
                     <>
+                        <div className="margin-top">
+                            <div className="row-form">
+                                <input
+                                    className="number-input"
+                                    placeholder="Latitude"
+                                    type="number"
+                                    step="any"
+                                    value={latitudeCenter}
+                                    onChange={(e) => {
+                                        e.preventDefault();
+
+                                        if (/^[+-]?\d+(\.\d+)?$/.test(e.target.value))
+                                        {
+                                            setLatitudeCenter(parseFloat(e.target.value));
+                                        }
+
+                                        else
+                                        {
+                                            showPopUp({title: "Center Value Error", message: "Latitude should be a number!"})
+                                        }
+                                    }}
+                                ></input>
+
+                                <input
+                                    className="number-input"
+                                    placeholder="Longitude"
+                                    type="number"
+                                    step="any"
+                                    value={longitudeCenter}
+                                    onChange={(e) => {
+                                        e.preventDefault();
+
+                                        if (/^[+-]?\d+(\.\d+)?$/.test(e.target.value))
+                                        {
+                                            setLongitudeCenter(parseFloat(e.target.value));
+                                        }
+
+                                        else
+                                        {
+                                            showPopUp({title: "Center Value Error", message: "Longitude should be a number!"})
+                                        }
+                                    }}
+                                ></input>
+                            </div>
+                        </div>
                         <GoogleMap
                             mapContainerStyle={containerStyle}
-                            center={center}
+                            center={{lat: latitudeCenter, lng: longitudeCenter}}
                             zoom={zoom}
                             tilt={0}
                             options={{
@@ -471,7 +525,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                            
                             <InfoWindow
                                 onLoad={(window) => {setInfoWindow(window)}}
-                                anchor={solutionMarkers.current.length === 2? solutionMarkers.current[1] : center}
+                                anchor={solutionMarkers.current.length === 2? solutionMarkers.current[1] : {lat: latitudeCenter, lng: longitudeCenter}}
                             >
                                 <>
                                 {solutionInfo &&
