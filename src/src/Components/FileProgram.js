@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ConfigMap from "./ConfigMap";
-import { UniformCostSearch } from "../Algorithms/PathFinding";
+import { AyStar, UniformCostSearch } from "../Algorithms/PathFinding";
 
 const FileProgram = ({setLoading, showPopUp}) => {
     
@@ -83,10 +83,12 @@ const FileProgram = ({setLoading, showPopUp}) => {
     }
     const handleSolve = async (event) => {
         event.preventDefault();
+        var pathFindingResult;
         if (algorithm === 0) {
 
             setLoading(true);
-            setSolution(UniformCostSearch(adjMatrix, sourceNode, targetNode));
+            pathFindingResult = UniformCostSearch(adjMatrix, sourceNode, targetNode);
+            setSolution(pathFindingResult.solution);
             setLoading(false);
         }
         else if (algorithm === 1) {
@@ -99,7 +101,9 @@ const FileProgram = ({setLoading, showPopUp}) => {
             else
             {
                 setLoading(true);
-                setSolution([]);
+                pathFindingResult = AyStar(adjMatrix, sourceNode, targetNode, 
+                                        {coordinates: heuristic});
+                setSolution(pathFindingResult.solution);
                 setLoading(false);
             }
         }

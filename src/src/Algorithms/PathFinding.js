@@ -11,6 +11,7 @@ const UniformCostSearch = (adjMatrix, source, dest) => {
     // Insert source node
     // Tuple definition: [f(n), n, previous_node]
     pq.push([0, source, -2]);
+    var finalDistance;
 
     while (!pq.isEmpty()) {
         var top = pq.top();
@@ -20,6 +21,7 @@ const UniformCostSearch = (adjMatrix, source, dest) => {
         prev[top[1]] = top[2];
         
         if (top[1] === dest) {
+            finalDistance = top[0];
             break;
         }
         
@@ -29,7 +31,12 @@ const UniformCostSearch = (adjMatrix, source, dest) => {
         }
     }
 
-    if (prev[dest] === -1) return [];
+    if (prev[dest] === -1) 
+        return {
+            found: false,
+            solution: [],
+            distance: -1,
+        }
 
     // Backtrack
     var path = [];
@@ -40,7 +47,11 @@ const UniformCostSearch = (adjMatrix, source, dest) => {
     }
     path.reverse();
 
-    return (path);
+    return {
+        found: true,
+        solution: path,
+        distance: finalDistance,
+    }
 }
 
 
@@ -62,8 +73,8 @@ const AyStar = (adjMatrix, source, dest, distOption) => {
     if (distOption['coordinates']) {
         // create distanceToDest
         distanceToDest = [];
-        for (var i = 0; i < distOption['coordinates']; i++) {
-            distanceToDest = EuclideanDist(distOption['coordinates'][i], distOption['coordinates'][dest]);
+        for (var i = 0; i < distOption['coordinates'].length; i++) {
+            distanceToDest.push(EuclideanDist(distOption['coordinates'][i], distOption['coordinates'][dest]));
         }
     }
     else if (distOption['distanceToDest']) {
@@ -82,6 +93,7 @@ const AyStar = (adjMatrix, source, dest, distOption) => {
     // Insert source node
     // Tuple definition: [f(n), n, previous_node, g(n)]
     pq.push([distanceToDest[source], source, -2, 0]);
+    var finalDistance;
 
     while (!pq.isEmpty()) {
         var top = pq.top();
@@ -91,6 +103,7 @@ const AyStar = (adjMatrix, source, dest, distOption) => {
         prev[top[1]] = top[2];
         
         if (top[1] === dest) {
+            finalDistance = top[0];
             break;
         }
         
@@ -103,7 +116,12 @@ const AyStar = (adjMatrix, source, dest, distOption) => {
         }
     }
 
-    if (prev[dest] === -1) return [];
+    if (prev[dest] === -1)
+        return {
+            found: false,
+            solution: [],
+            distance: -1,
+        }
 
     // Backtrack
     var path = [];
@@ -114,7 +132,12 @@ const AyStar = (adjMatrix, source, dest, distOption) => {
     }
     path.reverse();
 
-    return (path);
+    console.log(distanceToDest);
+    return {
+        found: true,
+        solution: path,
+        distance: finalDistance,
+    }
 
 }
 

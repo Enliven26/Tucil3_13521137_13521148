@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { GoogleMap, useJsApiLoader, DrawingManager, DirectionsRenderer, InfoWindow } from '@react-google-maps/api';
 import { v4 as uuid } from 'uuid';
 import Readme from "./Readme";
+import { AyStar, UniformCostSearch } from "../Algorithms/PathFinding";
 
 const libraries = ['geometry', 'drawing', 'places']
 
@@ -117,10 +118,9 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
             adjMatrix.push(adjRow);
         });
 
-        // cari shortest path disini
-
-        const solution = [0, 1, 2];
-
+        const [solution, solutionDistance] = (algorithm === 0 
+            ? UniformCostSearch(adjMatrix, startMarkerIdx, endMarkerIdx)
+            : AyStar(adjMatrix, startMarkerIdx, endMarkerIdx, {distanceToDest: heuristicValues}));
         const temp = [];
 
         solution.forEach((val, idx) => {
@@ -134,18 +134,19 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                     (resultObj) => resultObj.firstId === firstMarker.id && resultObj.secondId === secondMarker.id
                 )[0])
             }
-        });
+        }); 
 
         markers.current.forEach((marker) => {
             heuristicValues.push(getStraightLineDistance(marker, solutionMarkers.current[1]))
-        })
+        }) 
 
         console.log(heuristicValues);
         console.log(adjMatrix);
+        console.log(solution);
         
         setSolutionInfo({
             position: solutionMarkers.current[1].getPosition(),
-
+            distance: solutionDistance,
         })
 
         setSolutionDirectionResult(temp);
