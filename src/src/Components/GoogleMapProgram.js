@@ -116,10 +116,20 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
             adjMatrix.push(adjRow);
         });
 
-        const [solution, solutionDistance] = (algorithm === 0 
-            ? UniformCostSearch(adjMatrix, startMarkerIdx, endMarkerIdx)
-            : AyStar(adjMatrix, startMarkerIdx, endMarkerIdx, {distanceToDest: heuristicValues}));
-        console.log("bruh");
+        markers.current.forEach((marker) => {
+            heuristicValues.push(getStraightLineDistance(marker, solutionMarkers.current[1]))
+        })
+
+        var pathFindingResults;
+        if (algorithm === 0) {
+            pathFindingResults = UniformCostSearch(adjMatrix, startMarkerIdx, endMarkerIdx);
+        }
+        else if (algorithm === 1) {
+            pathFindingResults = 
+                AyStar(adjMatrix, startMarkerIdx, endMarkerIdx, {distanceToDest: heuristicValues});
+        }
+        const solution = pathFindingResults.solution;
+        
         const temp = [];
 
         solution.forEach((val, idx) => {
@@ -133,19 +143,16 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                     (resultObj) => resultObj.firstId === firstMarker.id && resultObj.secondId === secondMarker.id
                 )[0])
             }
-        }); 
-
-        markers.current.forEach((marker) => {
-            heuristicValues.push(getStraightLineDistance(marker, solutionMarkers.current[1]))
-        }) 
+        });  
 
         console.log(heuristicValues);
         console.log(adjMatrix);
         console.log(solution);
+        console.log(pathFindingResults.distance)
         
         setSolutionInfo({
             position: solutionMarkers.current[1].getPosition(),
-            distance: solutionDistance,
+            distance: pathFindingResults.distance,
             solution: solution,
         })
 
