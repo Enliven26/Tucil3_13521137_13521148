@@ -104,10 +104,11 @@ const FileProgram = ({setLoading, showPopUp}) => {
                 pathFindingResult = AyStar(adjMatrix, sourceNode, targetNode, 
                                         {coordinates: heuristic});
                 setSolution(pathFindingResult.solution);
-                if (pathFindingResult.solution.length === 0) showPopUp({title: "Solution Not Found", message: "There is no path from source node to target node!"})
                 setLoading(false);
             }
         }
+
+        if (pathFindingResult.solution.length === 0) showPopUp({title: "Solution Not Found", message: "There is no path from source node to target node!"})
     }
 
     const handleGraphTypeChange = async (event) => {

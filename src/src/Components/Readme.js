@@ -11,8 +11,8 @@ const Readme = () => {
                     <label className="note">3. Single click a user-created marker to select it. The marker will turn blue (from default color green)</label>
                     <label className="note">4. After selecting a marker, click again the marker to delete it. This will also delete all edges/directions corresponding with the marker.</label>
                     <label className="note">5. After selecting a single marker, select another marker to create an edge between them. Mark that this program will generate directed-graph which means user needs to create 2 edges for the same markers if user wants to create edges for both directions.</label>
-                    <label className="note">6. Select 2 markers with existing edge to delete the edge (selection order is important!).</label>
-                    <label className="note">7. In solution mode, select 2 markers to define start node and end node to search for shortest-path solution (selection order is important!).</label>
+                    <label className="note">6. Select 2 markers with existing edge to delete the edge. <span>(Selection order is important!)</span></label>
+                    <label className="note">7. In solution mode, select 2 markers to define start node and end node to search for shortest-path solution. <span>(Selection order is important!)</span></label>
                 </div>
 
                 <div className="step-content">

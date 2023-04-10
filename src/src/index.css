@@ -104,7 +104,9 @@
 
 .program .display {
   
-  width: 70%;
+  width: 80%;
+  display: flex;
+  flex-direction: column;
   margin:0 auto;
   padding-bottom: 10px;
   border: #f1356d;

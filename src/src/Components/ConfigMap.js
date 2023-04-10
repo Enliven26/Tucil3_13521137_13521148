@@ -159,7 +159,8 @@ const ConfigMap = ({adjacencyMatrix, names, solution, isDirected}) => {
                 }}
             />
 
-            <span className="note">Drag and re-arrange the nodes for more accurate interpretation</span>
+            <span className="note">Drag and rearrange the nodes for more accurate interpretation</span>
+            <span className="note">(Rearrangement is recommended after finding solution as the graph will re-render)</span>
         </div>
      );
 }

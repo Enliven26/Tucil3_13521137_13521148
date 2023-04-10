@@ -479,7 +479,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                                         <h3>{"Result" + (solutionInfo.solution.length === 0 ? " Not Found" : "")}</h3>
                                         {solutionInfo.solution.length > 0 &&
                                             <div>
-                                                <span className="note">Shortest Distance: {solutionInfo.distance}</span>  
+                                                <span className="note">Shortest Distance: {solutionInfo.distance} m</span>  
                                                 <span className="note"></span> 
                                             </div>
                                         }
