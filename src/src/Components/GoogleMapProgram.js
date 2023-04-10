@@ -50,6 +50,8 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     const [showReadme, setShowReadme] = useState(false);
     const [latitudeCenter, setLatitudeCenter] = useState(-6.8915);
     const [longitudeCenter, setLongitudeCenter] = useState(107.6107);
+    const [latitudeCenterHolder, setLatitudeCenterHolder] = useState("-6.8915");
+    const [longitudeCenterHolder, setLongitudeCenterHolder] = useState("107.6107");
 
     // program refs
     const solutionMode = useRef(false);
@@ -174,6 +176,13 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
             });
         }
         setLoading(false);
+    }
+
+    const enterKeyHandler = (e) => {
+        if (e.key === 'Enter')
+        {
+            e.currentTarget.blur();
+        }
     }
 
     const resetCenter = (e) => {
@@ -464,10 +473,15 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                                 <input
                                     className="number-input"
                                     placeholder="Latitude"
-                                    type="number"
+                                    type="text"
                                     step="any"
-                                    value={latitudeCenter}
+                                    value={latitudeCenterHolder}
                                     onChange={(e) => {
+                                        e.preventDefault();
+                                        setLatitudeCenterHolder(e.target.value);
+                                    }}
+
+                                    onBlur={(e) => {
                                         e.preventDefault();
 
                                         if (/^[+-]?\d+(\.\d+)?$/.test(e.target.value))
@@ -478,17 +492,26 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                                         else
                                         {
                                             showPopUp({title: "Center Value Error", message: "Latitude should be a number!"})
+                                            setLatitudeCenterHolder(latitudeCenter);
                                         }
                                     }}
+
+                                    onKeyDown={enterKeyHandler}
                                 ></input>
 
                                 <input
                                     className="number-input"
                                     placeholder="Longitude"
-                                    type="number"
+                                    type="text"
                                     step="any"
-                                    value={longitudeCenter}
+                                    value={longitudeCenterHolder}
                                     onChange={(e) => {
+                                        e.preventDefault();
+
+                                        setLongitudeCenterHolder(e.target.value);
+
+                                    }}
+                                    onBlur={(e) => {
                                         e.preventDefault();
 
                                         if (/^[+-]?\d+(\.\d+)?$/.test(e.target.value))
@@ -499,8 +522,10 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                                         else
                                         {
                                             showPopUp({title: "Center Value Error", message: "Longitude should be a number!"})
+                                            setLongitudeCenterHolder(longitudeCenter);
                                         }
                                     }}
+                                    onKeyDown={enterKeyHandler}
                                 ></input>
                             </div>
                         </div>
