@@ -442,7 +442,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     useEffect(() => {
         if (process.env.REACT_APP_GMAP_API === undefined)
         {
-            showPopUp({title:"Undefined API Key", message:".env file containing REACT_APP_GMAP_API={YOUR GOOGLE MAP API KEY} is needed! (.env file should be located inside outermost-src folder)", to:"/app"})
+            showPopUp({title:"Undefined API Key", message:".env file containing REACT_APP_GMAP_API={YOUR GOOGLE MAP API KEY} is needed! (.env file should be located inside the outermost src folder)"})
         }
     }, [])
 
@@ -474,7 +474,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                 {
                     loadError && <span className='note'>{"Error occured while loading google map: " + loadError.message}</span>
                 }
-                {isLoaded && process.env.REACT_APP_GMAP_API !== undefined &&
+                {isLoaded &&
                     <>
                         <div className="margin-top">
                             <div className="row-form">

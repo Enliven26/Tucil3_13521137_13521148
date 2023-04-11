@@ -5,6 +5,11 @@ const Readme = () => {
 
             <div className="steps">
                 <div className="step-content">
+                    <h3>API Configuration</h3>
+                    <label className="note">This application needs Google Map API Key to work. Google Map API Key is configured inside .env file located inside the outermost src folder with format REACT_APP_GMAP_API=(Your API Key). <span>(Note: restart the app everytime .env file is changed!)</span></label>
+                </div>
+
+                <div className="step-content">
                     <h3>Select Mode</h3>
                     <label className="note">1. Click hand icon on the upper left side of the map to use select mode.</label>
                     <label className="note">2. Hold any button on mouse to drag the map.</label>
