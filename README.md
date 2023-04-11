@@ -30,6 +30,9 @@ Untuk install create-react-app secara global, jalankan
     ```
     npm install -g create-react-app
     ```
+- Browser dengan support Javascript
+    - Disarankan menggunakan Google Chrome atau Microsoft Edge versi terbaru
+    - Selengkapnya: https://caniuse.com/?search=javascript
 - Generate Google Maps API KEY (opsional)
 
 ### Installation
