@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { GoogleMap, useJsApiLoader, DrawingManager, DirectionsRenderer, InfoWindow } from '@react-google-maps/api';
 import { v4 as uuid } from 'uuid';
 import Readme from "./Readme";
@@ -439,12 +439,20 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
         setDisableSolve(false);
     }
 
+    useEffect(() => {
+        if (process.env.REACT_APP_GMAP_API === undefined)
+        {
+            showPopUp({title:"Undefined API Key", message:".env file containing REACT_APP_GMAP_API={YOUR GOOGLE MAP API KEY} is needed! (.env file should be located inside outermost-src folder)", to:"/app"})
+        }
+    }, [])
+
     // load google map
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
         googleMapsApiKey: process.env.REACT_APP_GMAP_API,
         libraries: libraries
     });
+
 
     return ( 
         <div className='program'>
@@ -466,7 +474,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                 {
                     loadError && <span className='note'>{"Error occured while loading google map: " + loadError.message}</span>
                 }
-                {isLoaded &&
+                {isLoaded && process.env.REACT_APP_GMAP_API !== undefined &&
                     <>
                         <div className="margin-top">
                             <div className="row-form">
