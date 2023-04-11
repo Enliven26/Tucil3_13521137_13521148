@@ -332,6 +332,8 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                 travelMode: google.maps.TravelMode.DRIVING
             }, (/** @type google.maps.DirectionsResult */ result, /** @type google.maps.DirectionsStatus */ status) => {
                 
+                setLoading(false);
+
                 if (status === "OK") {
                     directionResultsRef.current = [...directionResultsRef.current, {firstId: startMarker.id, secondId: endMarker.id, result: result}];
                     setDirectionResults(directionResultsRef.current);
@@ -343,7 +345,6 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                 }
             })
         }
-        setLoading(false);
     }
 
     const unselectCurrentMark = () => {
