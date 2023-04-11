@@ -675,7 +675,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                                         
                                     }}
                                     >
-                                    UCF
+                                    UCS
                                     </button>
 
                                     <button
