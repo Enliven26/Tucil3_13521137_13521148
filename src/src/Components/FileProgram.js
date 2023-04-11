@@ -297,7 +297,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
                         className="inputFileLabel" 
                         title="Straight line distance for every node is calculated from target node that will be selected."
                     >
-                        <span style={{color: coordinates? "#77dd76":"#f1356d"}}>Insert Straight Line Distance Configuration</span>
+                        <span style={{color: coordinates? "#77dd76":"#f1356d"}}>Insert Coordinates Configuration</span>
                         <input
                             className="inputFile"
                             type="file"
