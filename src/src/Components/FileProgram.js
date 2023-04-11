@@ -139,10 +139,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
         event.preventDefault(); 
         if (configFile)
         {
-         
             const res = await readFile({file: configFile, validationFunction: isConfigFileValid, graphType: value});
-
-            setLoading(false);
 
             if (!res.success)
             {

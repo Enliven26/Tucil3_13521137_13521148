@@ -308,8 +308,6 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
 
     const calculateEdge = async (startMarker, endMarker) => {
 
-        setLoading(true);
-
         const foundIdx = directionResultsRef.current.findIndex(
             (resultObj) => (resultObj.firstId === startMarker.id && resultObj.secondId === endMarker.id)
         )
@@ -325,6 +323,8 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
             // eslint-disable-next-line no-undef
             const directionsService = new google.maps.DirectionsService();
 
+            setLoading(true);
+            
             await directionsService.route({
                 origin: startMarker.getPosition(),
                 destination: endMarker.getPosition(),
