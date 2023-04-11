@@ -37,7 +37,8 @@ Untuk install create-react-app secara global, jalankan
 
 ### Installation
 - Clone repository
-- Buat file .env pada root yang berisi 
+- Pindah ke folder src `cd src`
+- Buat file .env pada folder saat ini yang berisi 
     ```
     REACT_APP_GMAP_API=$YOUR_KEY
     ```
