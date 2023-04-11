@@ -324,7 +324,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
             const directionsService = new google.maps.DirectionsService();
 
             setLoading(true);
-            
+
             await directionsService.route({
                 origin: startMarker.getPosition(),
                 destination: endMarker.getPosition(),
@@ -344,6 +344,8 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
                     showPopUp({title:status, message:"Error while calculating edge between 2 selected markers!"})
                 }
             })
+
+            .catch((e) => {})
         }
     }
 
@@ -443,7 +445,7 @@ const GoogleMapProgram = ({setLoading, showPopUp}) => {
     useEffect(() => {
         if (process.env.REACT_APP_GMAP_API === undefined)
         {
-            showPopUp({title:"Undefined API Key", message:".env file containing REACT_APP_GMAP_API={YOUR GOOGLE MAP API KEY} is needed! (.env file should be located inside the outermost src folder)"})
+            showPopUp({title:"Undefined API Key", message:".env file containing REACT_APP_GMAP_API=YOUR_GOOGLE_MAP_API_KEY is needed! (.env file should be located inside the outermost src folder)"})
         }
     }, [])
 
