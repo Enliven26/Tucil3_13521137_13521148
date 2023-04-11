@@ -288,7 +288,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
                         type="file"
                         accept=".txt"
                         onChange={(e) => handleConfigFileInput(e)}
-                        onClick={(e) => e.target.value = null}
+                        onClick={(e) => {e.currentTarget.value = null}}
                     ></input>
                 </label>
 
@@ -303,7 +303,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
                             type="file"
                             accept=".txt"
                             onChange={(e) => handleCoordinateFileInput(e)}
-                            onClick={(e) => e.target.value = null}
+                            onClick={(e) => e.currentTarget.value = null}
                         ></input>
                     </label>
                 }
@@ -319,7 +319,7 @@ const FileProgram = ({setLoading, showPopUp}) => {
                             type="file"
                             accept=".txt"
                             onChange={(e) => handleNameFileInput(e)}
-                            onClick={(e) => e.target.value = null}
+                            onClick={(e) => {e.currentTarget.value = null}}
                         ></input>
                     </label>
                 }

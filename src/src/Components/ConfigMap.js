@@ -104,13 +104,13 @@ const ConfigMap = ({adjacencyMatrix, names, solution, isDirected}) => {
                         if (solution[firstSolutionIndex+1] === j)
                         {
                             tempEdge.arrows.to = true;
-                            tempEdge.color.color = "#77dd76";
+                            tempEdge.color.color = "#16a52d";
                         }
 
                         else if (!isDirected && solution[secondSolutionIndex+1] === i)
                         {
                             tempEdge.arrows.from = true;
-                            tempEdge.color.color = "#77dd76";
+                            tempEdge.color.color = "#16a52d";
                         }   
                     }
                     tempGraph.edges.push(tempEdge)
