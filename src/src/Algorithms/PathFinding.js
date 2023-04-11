@@ -70,14 +70,7 @@ const AyStar = (adjMatrix, source, dest, distOption) => {
     dest = parseInt(dest);
 
     var distanceToDest;
-    if (distOption['coordinates']) {
-        // create distanceToDest
-        distanceToDest = [];
-        for (var i = 0; i < distOption['coordinates'].length; i++) {
-            distanceToDest.push(EuclideanDist(distOption['coordinates'][i], distOption['coordinates'][dest]));
-        }
-    }
-    else if (distOption['distanceToDest']) {
+    if (distOption['distanceToDest']) {
         // copy distanceToDest
         distanceToDest = [...distOption['distanceToDest']];
     }
@@ -107,7 +100,7 @@ const AyStar = (adjMatrix, source, dest, distOption) => {
             break;
         }
         
-        for (i = 0; i < adjMatrix[top[1]].length; i++) {
+        for (var i = 0; i < adjMatrix[top[1]].length; i++) {
             if (vis[i] || adjMatrix[top[1]][i].toUpperCase() === 'X') continue;
             pq.push([top[3] + parseInt(adjMatrix[top[1]][i]) + distanceToDest[i], 
                     i, 
@@ -139,17 +132,6 @@ const AyStar = (adjMatrix, source, dest, distOption) => {
         distance: finalDistance,
     }
 
-}
-
-const EuclideanDist = (point1, point2) => {
-    if (point1.length !== point2.length) {
-        throw Error("the arguments' dimension is different");
-    }
-    var val = 0;
-    for (var i = 0; i < point1.length; i++) {
-        val += (point1[i] - point2[i]) ** 2;
-    }
-    return val ** 0.5;
 }
 
 export {UniformCostSearch, AyStar};
