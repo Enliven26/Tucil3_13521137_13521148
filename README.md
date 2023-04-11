@@ -36,8 +36,9 @@ Untuk install create-react-app secara global, jalankan
 - Generate Google Maps API KEY (opsional)
 
 ### Installation
-- Clone repository
-- Buat file .env pada root yang berisi 
+- Clone repository `git clone https://github.com/Enliven26/Tucil3_13521137_13521148`
+- Pindah ke folder src `cd ./Tucil3_13521137_13521148/src`
+- Buat file .env pada folder saat ini yang berisi 
     ```
     REACT_APP_GMAP_API=$YOUR_KEY
     ```
