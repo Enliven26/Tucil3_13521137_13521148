@@ -131,7 +131,7 @@ const ConfigMap = ({adjacencyMatrix, names, solution, isDirected}) => {
             color: "#000000",
 
         },
-        height: "400px"
+        height: "600px"
     };
 
     const events = {
@@ -141,7 +141,7 @@ const ConfigMap = ({adjacencyMatrix, names, solution, isDirected}) => {
     };
 
     return ( 
-        <div className="display">
+        <div className="display" style={{width: "90%"}}>
             <Graph
                 style={{
                     backgroundColor: '#fafafa',
